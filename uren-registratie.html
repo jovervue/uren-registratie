@@ -1,0 +1,1071 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urenregistratie – CvoorU</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    /* New palette */
+    --primary:#1E3A8A;      /* Diep blauw */
+    --secondary:#2563EB;    /* Helder blauw */
+    --accent:#22C55E;       /* Fris groen */
+    --warn:#F59E0B;         /* Amber */
+    --red:#EF4444;          /* Fout/overuren */
+    --red-light:#FEF2F2;
+    --bg:#F8FAFC;           /* Achtergrond */
+    --card:#FFFFFF;         /* Kaarten */
+    --text:#0F172A;         /* Primaire tekst */
+    --text-muted:#64748B;   /* Secundaire tekst */
+    --border:#E2E8F0;       /* Borders */
+    /* Derived helpers */
+    --secondary-light:#EFF6FF;
+    --accent-light:#F0FDF4;
+    --warn-light:#FFFBEB;
+    --primary-light:#EFF6FF;
+    /* Legacy aliases keep old JS working */
+    --orange:var(--secondary);
+    --orange-light:var(--secondary-light);
+    --orange-mid:#93C5FD;
+    --dark:var(--primary);
+    --dark2:#1D4ED8;
+    --gray-50:var(--bg);
+    --gray-100:#F1F5F9;
+    --gray-200:var(--border);
+    --gray-300:#CBD5E1;
+    --gray-400:var(--text-muted);
+    --gray-500:#475569;
+    --gray-700:#334155;
+    --radius:10px;
+    --shadow:0 1px 3px rgba(30,58,138,.07),0 4px 16px rgba(30,58,138,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito Sans',sans-serif;background:var(--gray-50);color:var(--dark);min-height:100vh;font-size:14px;}
+
+  /* ── NAV ── */
+  .nav{background:linear-gradient(135deg,var(--primary) 0%,#162d6e 100%);padding:0 24px;display:flex;align-items:center;height:64px;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(17,17,40,.3);}
+  .nav-brand{display:flex;align-items:center;gap:0;text-decoration:none;flex-shrink:0;}
+  .nav-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px;}
+  .nav-client-name{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.3px;}
+  .nav-client-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
+  .nav-tabs{display:flex;gap:2px;flex:1;}
+  .nav-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.55);border:none;background:none;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .nav-tab:hover{background:rgba(255,255,255,.1);color:white;}
+  .nav-tab.active{background:var(--secondary);color:white;}
+  .nav-user{margin-left:auto;display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 10px;border-radius:8px;transition:background .15s;}
+  .nav-user:hover{background:rgba(255,255,255,.08);}
+  .nav-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;}
+  .nav-username{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
+
+  /* ── USER SELECT MODAL ── */
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,17,40,.7);z-index:200;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:white;border-radius:16px;padding:32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal-title{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:16px;}
+  .user-btn{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;background:white;cursor:pointer;width:100%;margin-bottom:8px;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .user-btn:hover{border-color:var(--secondary);background:var(--secondary-light);}
+  .user-btn.active-user{border-color:var(--secondary);background:var(--secondary-light);}
+  .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;}
+  .user-avatar.alt{background:linear-gradient(135deg,var(--primary),#162d6e);}
+
+  /* ── PAGES ── */
+  .page{display:none;padding:24px;max-width:1100px;margin:0 auto;}
+  .page.active{display:block;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .page-header h1{font-size:22px;font-weight:800;color:var(--dark);}
+  .page-header p{font-size:13px;color:var(--gray-400);margin-top:2px;}
+
+  /* ── CARDS ── */
+  .card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;}
+  .card-title{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;}
+  .mb-16{margin-bottom:16px;} .mb-24{margin-bottom:24px;} .mb-20{margin-bottom:20px;}
+
+  /* ── STAT CARDS ── */
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .stat-card.orange::before{background:var(--secondary);}
+  .stat-card.dark::before{background:var(--primary);}
+  .stat-card.mid::before{background:var(--accent);}
+  .stat-label{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-400);}
+  .stat-value{font-size:28px;font-weight:900;color:var(--dark);margin:4px 0 2px;line-height:1;}
+  .stat-sub{font-size:11px;color:var(--gray-400);}
+
+  /* ── FORM ── */
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  label{font-size:10px;font-weight:800;color:var(--gray-500);letter-spacing:.8px;text-transform:uppercase;}
+  input,select,textarea{font-family:'Nunito Sans',sans-serif;font-size:14px;border:1.5px solid var(--gray-200);border-radius:8px;padding:9px 12px;color:var(--dark);background:white;transition:border-color .15s;outline:none;width:100%;}
+  input:focus,select:focus,textarea:focus{border-color:var(--secondary);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  input.error{border-color:var(--red);}
+  .error-msg{font-size:11px;color:var(--red);margin-top:2px;display:none;}
+  .error-msg.show{display:block;}
+  textarea{resize:vertical;min-height:52px;}
+
+  /* ── ENTRY ROWS ── */
+  .entry-rows{display:flex;flex-direction:column;gap:10px;}
+  .entry-row{display:grid;grid-template-columns:220px 1fr 90px 36px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+  .entry-row select,.entry-row textarea,.entry-row input{font-size:13px;padding:7px 10px;}
+  .entry-row textarea{min-height:52px;}
+  .entry-row-remove{background:var(--red-light);border:none;color:var(--red);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:background .15s;}
+  .entry-row-remove:hover{background:#fee2e2;}
+  .add-row-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--secondary-light);color:var(--secondary);border:1.5px dashed var(--secondary);border-radius:8px;cursor:pointer;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;transition:all .15s;width:100%;justify-content:center;margin-top:8px;}
+  .add-row-btn:hover{background:#DBEAFE;}
+
+  /* ── TOTAL BAR ── */
+  .total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 16px;margin-top:14px;}
+  .total-bar span{font-size:13px;color:var(--gray-500);font-weight:600;}
+  .total-bar strong{font-size:18px;font-weight:900;color:var(--secondary);}
+  .total-bar.warn strong{color:#d97706;}
+  .total-bar.ok strong{color:var(--accent);}
+
+  /* ── BUTTONS ── */
+  .btn{padding:9px 20px;border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--secondary);color:white;} .btn-primary:hover{background:var(--primary);}
+  .btn-dark{background:var(--primary);color:white;} .btn-dark:hover{background:#162d6e;}
+  .btn-ghost{background:var(--gray-100);color:var(--gray-700);} .btn-ghost:hover{background:var(--gray-200);}
+  .btn-danger{background:var(--red-light);color:var(--red);}
+  .btn-sm{padding:5px 12px;font-size:12px;border-radius:6px;}
+  .btn-row{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+
+  /* ── TABLE ── */
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);padding:10px 14px;text-align:left;background:var(--gray-50);border-bottom:1px solid var(--gray-200);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--gray-100);transition:background .1s;}
+  tbody tr:hover{background:var(--gray-50);}
+  tbody tr:last-child{border-bottom:none;}
+  tbody td{padding:11px 14px;font-size:13px;color:var(--gray-700);vertical-align:middle;}
+  .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+  .badge-blue{background:var(--secondary-light);color:var(--primary);}
+  .badge-orange{background:#FEF9C3;color:#92400E;}
+  .badge-dark{background:#EFF6FF;color:var(--primary);}
+  .badge-gray{background:var(--gray-100);color:var(--gray-400);}
+
+  /* ── FILTERS ── */
+  .filter-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+  .filter-row select,.filter-row input{max-width:200px;padding:7px 12px;font-size:13px;}
+  .filter-label{font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
+
+  /* ── CHARTS ── */
+  .chart-bars{display:flex;align-items:flex-end;gap:8px;padding:0 4px;margin-top:8px;}
+  .chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--secondary),var(--primary));min-height:4px;}
+  .chart-bar.dark{background:linear-gradient(180deg,var(--primary),#162d6e);}
+  .chart-label{font-size:10px;color:var(--gray-400);font-weight:600;text-align:center;}
+  .chart-val{font-size:11px;font-weight:700;color:var(--gray-500);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+
+  /* ── PIE CHART ── */
+  .pie-wrap{display:flex;align-items:center;gap:32px;flex-wrap:wrap;}
+  .pie-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+  .pie-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--gray-700);}
+  .pie-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+  .pie-legend-pct{margin-left:auto;font-weight:800;color:var(--dark);}
+
+  /* ── TOGGLE ── */
+  .toggle-wrap{display:flex;align-items:center;gap:8px;}
+  .toggle{width:36px;height:20px;background:var(--gray-300);border-radius:20px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0;}
+  .toggle::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .toggle.on{background:var(--accent);}
+  .toggle.on::after{transform:translateX(16px);}
+
+  /* ── TOAST ── */
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:999;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-left:3px solid #16a34a;} .toast.error{border-left:3px solid var(--red);} .toast.warn{border-left:3px solid #d97706;}
+
+  .dup-warning{display:none;margin-top:10px;padding:10px 14px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;}
+  .empty{text-align:center;padding:48px 24px;color:var(--gray-400);}
+  .empty-icon{font-size:40px;margin-bottom:8px;}
+  .empty h3{font-size:15px;font-weight:700;color:var(--gray-500);margin-bottom:4px;}
+
+  @media(max-width:768px){
+    .stats-row,.two-col,.three-col{grid-template-columns:1fr 1fr;}
+    .entry-row{grid-template-columns:1fr 36px;}
+  }
+</style>
+</head>
+<body>
+
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-title">Wie ben jij?</div>
+    <div id="userModalGrid"></div>
+    <div style="border-top:1px solid var(--gray-100);margin:12px 0;padding-top:12px;">
+      <div id="newUserFormModal" style="display:none;margin-bottom:10px;">
+        <input type="text" id="newUserName" placeholder="Volledige naam" style="margin-bottom:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="confirmAddUser()">Toevoegen</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('newUserFormModal').style.display='none'">✕</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="document.getElementById('newUserFormModal').style.display='block';document.getElementById('newUserName').focus()">+ Nieuwe medewerker</button>
+    </div>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand" style="display:flex;align-items:center;gap:10px;">
+    <!-- Clock icon mark -->
+    <div style="width:38px;height:38px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9.5" stroke="#1E3A8A" stroke-width="2"/>
+        <path d="M12 7v5l3 3" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 3.5C5.1 4.6 3.6 6.4 3 8.5" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <!-- Wordmark -->
+    <div style="display:flex;flex-direction:column;line-height:1;">
+      <span style="font-size:15px;font-weight:900;color:white;letter-spacing:-.3px;">time<span style="color:#22C55E;">track</span></span>
+      <span style="font-size:8.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.8px;text-transform:uppercase;">by CvoorU</span>
+    </div>
+  </div>
+
+  <div class="nav-divider"></div>
+  <div style="display:flex;flex-direction:column;line-height:1.3;">
+    <span style="font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:white;">URENREGISTRATIE</span>
+  </div>
+
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('invoer',this)">📝 Invoer</button>
+    <button class="nav-tab" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-tab" onclick="showPage('overzicht',this)">📋 Overzicht</button>
+    <button class="nav-tab" onclick="showPage('projecten',this)">🗂 Projecten</button>
+  </div>
+
+  <div class="nav-user" onclick="openUserModal()">
+    <div class="nav-avatar" id="navAvatar">–</div>
+    <span class="nav-username" id="navUsername">–</span>
+  </div>
+</nav>
+
+<!-- PAGE: INVOER -->
+<div class="page active" id="page-invoer">
+  <div class="page-header">
+    <div>
+      <h1>Uren Invoeren</h1>
+      <p id="invoer-sub" style="font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-size:12px;color:var(--secondary);">URENREGISTRATIE</p>
+    </div>
+    <button class="btn btn-ghost" onclick="fillToday()">📅 Vandaag</button>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-title">Projecten &amp; Uren</div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;margin-bottom:14px;">
+      <div class="form-group" style="margin:0;">
+        <label>Datum *</label>
+        <input type="date" id="inp-datum" oninput="checkDuplicate()">
+        <span class="error-msg" id="err-datum">Vul een datum in</span>
+      </div>
+      <div id="dupWarning" class="dup-warning">⚠️ <strong>Let op:</strong> Er bestaat al een registratie voor deze datum. Opslaan overschrijft de bestaande invoer.</div>
+    </div>
+    <div class="entry-rows" id="entryRows"></div>
+    <button class="add-row-btn" onclick="addEntryRow()">+ Project toevoegen</button>
+    <div class="total-bar" id="totalBar">
+      <span>Totaal vandaag</span>
+      <strong id="totalHours">0.00 u</strong>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="clearForm()">Wissen</button>
+    <button class="btn btn-primary" onclick="saveEntry()">✓ Opslaan</button>
+  </div>
+</div>
+
+<!-- PAGE: DASHBOARD -->
+<div class="page" id="page-dashboard">
+  <div class="page-header">
+    <div><h1>Dashboard</h1><p>Statistieken en overzichten</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇ Excel</button>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span class="filter-label">Medewerker:</span>
+    <select id="dash-medewerker" onchange="renderDashboard()"><option value="">Alle</option></select>
+    <span class="filter-label">Klant:</span>
+    <select id="dash-klant" onchange="renderDashboard()"><option value="">Alle</option></select>
+    <span class="filter-label">Periode:</span>
+    <input type="month" id="dash-maand" onchange="renderDashboard()">
+    <button class="btn btn-ghost btn-sm" onclick="clearDashFilter()">✕</button>
+  </div>
+
+  <div class="stats-row" id="dashStats"></div>
+
+  <div class="two-col mb-20">
+    <div class="card">
+      <div class="card-title">Uren per project</div>
+      <div class="chart-bars" id="projectChart" style="height:120px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Uren per klant</div>
+      <div class="pie-wrap" id="klantPieWrap" style="min-height:160px;padding:8px 0;">
+        <canvas id="klantPie" width="160" height="160" style="flex-shrink:0;"></canvas>
+        <div class="pie-legend" id="klantPieLegend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="two-col mb-20">
+    <div class="card">
+      <div class="card-title">Weekoverzicht</div>
+      <div class="chart-bars" id="weekChart" style="height:120px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Uren per maand</div>
+      <div class="chart-bars" id="maandChart" style="height:120px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: OVERZICHT -->
+<div class="page" id="page-overzicht">
+  <div class="page-header">
+    <div><h1>Urenregistraties</h1><p>Alle ingevoerde registraties</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV(true)">⬇ CSV (selectie)</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel(true)">⬇ Excel (selectie)</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV(false)">⬇ CSV (alles)</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="filter-row" style="margin-bottom:0;">
+        <span class="filter-label">Medewerker:</span>
+        <select id="ov-medewerker" onchange="renderOverzicht()"><option value="">Alle</option></select>
+        <span class="filter-label">Klant:</span>
+        <select id="ov-klant" onchange="renderOverzicht()"><option value="">Alle</option></select>
+        <span class="filter-label">Maand:</span>
+        <input type="month" id="ov-maand" onchange="syncMaandToPeriod();renderOverzicht();" style="max-width:160px;">
+      </div>
+      <div class="filter-row" style="margin-bottom:0;">
+        <span class="filter-label">Projecten:</span>
+        <div style="position:relative;flex:1;max-width:460px;">
+          <button id="proj-filter-btn" onclick="toggleProjDropdown()" style="width:100%;text-align:left;padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:8px;background:white;font-family:'Nunito Sans',sans-serif;font-size:13px;color:var(--gray-700);cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+            <span id="proj-filter-label">Alle projecten</span><span style="color:var(--gray-400);font-size:10px;">▼</span>
+          </button>
+          <div id="proj-filter-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--gray-200);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);z-index:50;max-height:260px;overflow-y:auto;padding:8px 0;">
+            <div style="padding:6px 12px;border-bottom:1px solid var(--gray-100);display:flex;gap:8px;">
+              <button onclick="selectAllProjects()" class="btn btn-ghost btn-sm">Alles</button>
+              <button onclick="deselectAllProjects()" class="btn btn-ghost btn-sm">Geen</button>
+            </div>
+            <div id="proj-filter-checkboxes" style="padding:4px 0;"></div>
+          </div>
+        </div>
+        <span class="filter-label">Van</span>
+        <input type="date" id="ov-van" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
+        <span class="filter-label">Tot</span>
+        <input type="date" id="ov-tot" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
+        <button class="btn btn-ghost btn-sm" onclick="clearOvFilters()">✕</button>
+      </div>
+      <div id="ov-totaal-bar" style="display:none;background:var(--secondary-light);border:1.5px solid #93C5FD;border-radius:8px;padding:8px 14px;font-size:13px;color:var(--primary);font-weight:700;"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Datum</th><th>Medewerker</th><th>Klant</th><th>Project</th><th>Omschrijving</th><th>Uren</th><th></th></tr></thead>
+        <tbody id="overzichtTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: PROJECTEN -->
+<div class="page" id="page-projecten">
+  <div class="page-header">
+    <div><h1>Projecten &amp; Klanten</h1><p>Beheer projecten en klanten</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="showAddKlant()">+ Klant toevoegen</button>
+      <button class="btn btn-primary" onclick="showAddProject()">+ Project toevoegen</button>
+    </div>
+  </div>
+
+  <!-- Add klant form -->
+  <div class="card mb-16" id="addKlantForm" style="display:none;">
+    <div class="card-title">Nieuwe klant</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin:0;">
+        <label>Naam *</label>
+        <input type="text" id="nk-naam" placeholder="Gemeente / Organisatie">
+        <span class="error-msg" id="err-nk-naam">Vul een naam in</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideAddKlant()">Annuleren</button>
+      <button class="btn btn-primary" onclick="addKlant()">Toevoegen</button>
+    </div>
+  </div>
+
+  <!-- Add project form -->
+  <div class="card mb-16" id="addProjectForm" style="display:none;">
+    <div class="card-title">Nieuw project</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin:0;">
+        <label>Projectnaam *</label>
+        <input type="text" id="np-naam" placeholder="Naam">
+        <span class="error-msg" id="err-np-naam">Vul een naam in</span>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Code</label>
+        <input type="text" id="np-code" placeholder="CODE">
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Klant *</label>
+        <select id="np-klant">
+          <option value="">— Kies klant —</option>
+        </select>
+        <span class="error-msg" id="err-np-klant">Kies een klant</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideAddProject()">Annuleren</button>
+      <button class="btn btn-primary" onclick="addProject()">Toevoegen</button>
+    </div>
+  </div>
+
+  <!-- Klanten cards -->
+  <div class="card mb-16">
+    <div class="card-title">Actieve klanten</div>
+    <div id="klantCards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+  </div>
+
+  <!-- Projects table -->
+  <div class="card">
+    <div class="filter-row" style="margin-bottom:12px;">
+      <span class="filter-label">Filter:</span>
+      <select id="proj-klant-filter" onchange="renderProjecten()"><option value="">Alle klanten</option></select>
+      <select id="proj-status-filter" onchange="renderProjecten()">
+        <option value="all">Alle statussen</option>
+        <option value="active">Alleen actief</option>
+        <option value="inactive">Alleen inactief</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Projectnaam</th><th>Code</th><th>Klant</th><th>Totaal uren</th><th>Status</th><th>Acties</th></tr></thead>
+        <tbody id="projectenTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+// ══════════════════════════
+// DATA
+// ══════════════════════════
+let users = [{id:1,naam:'Jo',initials:'JO'}];
+let klanten = [];
+let projects = [
+  {id:1, naam:'WZC_GBS',                    code:'WZC_GBS',  klantId:null, actief:true},
+  {id:2, naam:'WZC_BMS',                    code:'WZC_BMS',  klantId:null, actief:true},
+  {id:3, naam:'WZC_HVAC',                   code:'WZC_HVAC', klantId:null, actief:true},
+  {id:4, naam:'Panquin Site',               code:'PQ_SITE',  klantId:null, actief:true},
+  {id:5, naam:'Panquin Museum',             code:'PQ_MUS',   klantId:null, actief:true},
+  {id:6, naam:'Polygoon HS cabine',         code:'POL_HS',   klantId:null, actief:true},
+  {id:7, naam:'Polygoon',                   code:'POL',      klantId:null, actief:true},
+  {id:8, naam:'P Stroykens overnachtingen', code:'PS_OV',    klantId:null, actief:true},
+  {id:9, naam:'GBST Stookplaatsen',         code:'GBST_SP',  klantId:null, actief:true},
+  {id:10,naam:'GBSV_BMS',                   code:'GBSV_BMS', klantId:null, actief:true},
+  {id:11,naam:'Beheer',                     code:'BEHEER',   klantId:null, actief:true},
+  {id:12,naam:'Raamcontracten',             code:'RAAM',     klantId:null, actief:true},
+  {id:13,naam:'WEB Airco',                  code:'WEB_AC',   klantId:null, actief:true},
+  {id:14,naam:'Diverse',                    code:'DIV',      klantId:null, actief:true},
+];
+let entries = [];
+let nextId=1, nextUserId=2, nextKlantId=1, nextProjId=15;
+let currentUserId=null, lastUserId=null;
+
+const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
+
+// ══════════════════════════
+// PERSIST
+// ══════════════════════════
+function save(){
+  localStorage.setItem('cv_users',JSON.stringify(users));
+  localStorage.setItem('cv_klanten',JSON.stringify(klanten));
+  localStorage.setItem('cv_projects',JSON.stringify(projects));
+  localStorage.setItem('cv_entries',JSON.stringify(entries));
+  localStorage.setItem('cv_lastUser',lastUserId||'');
+  localStorage.setItem('cv_ids',JSON.stringify({nextId,nextUserId,nextKlantId,nextProjId}));
+}
+function load(){
+  try{
+    const u=localStorage.getItem('cv_users'),k=localStorage.getItem('cv_klanten'),
+          p=localStorage.getItem('cv_projects'),e=localStorage.getItem('cv_entries'),
+          ids=localStorage.getItem('cv_ids');
+    if(u)users=JSON.parse(u);
+    if(k)klanten=JSON.parse(k);
+    if(p)projects=JSON.parse(p);
+    if(e)entries=JSON.parse(e);
+    lastUserId=parseInt(localStorage.getItem('cv_lastUser'))||null;
+    if(ids){const o=JSON.parse(ids);nextId=o.nextId||1;nextUserId=o.nextUserId||2;nextKlantId=o.nextKlantId||1;nextProjId=o.nextProjId||15;}
+  }catch(err){}
+}
+
+// ══════════════════════════
+// INIT
+// ══════════════════════════
+document.addEventListener('DOMContentLoaded',()=>{
+  load();
+  // Auto-login with last user or first user
+  const uid = lastUserId && users.find(u=>u.id===lastUserId) ? lastUserId : (users[0]?.id||null);
+  if(uid) doLogin(uid);
+  else openUserModal();
+
+  const now=new Date();
+  const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  ['dash-maand','ov-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
+});
+
+// ══════════════════════════
+// USER
+// ══════════════════════════
+function openUserModal(){
+  const grid=document.getElementById('userModalGrid');
+  grid.innerHTML=users.map(u=>`
+    <button class="user-btn ${u.id===currentUserId?'active-user':''}" onclick="doLogin(${u.id})">
+      <div class="user-avatar ${u.id%2===0?'alt':''}">${u.initials}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--dark);">${u.naam}</div>
+        ${u.id===lastUserId?'<div style="font-size:10px;color:var(--orange);font-weight:700;">Laatste sessie</div>':''}
+      </div>
+    </button>`).join('');
+  document.getElementById('userModal').classList.add('show');
+}
+function doLogin(uid){
+  currentUserId=uid; lastUserId=uid; save();
+  const u=users.find(x=>x.id===uid);
+  document.getElementById('navAvatar').textContent=u.initials;
+  document.getElementById('navUsername').textContent=u.naam;
+  document.getElementById('userModal').classList.remove('show');
+  fillToday();
+  if(!document.getElementById('entryRows').children.length) addEntryRow();
+  populateAllFilters();
+  renderDashboard(); renderOverzicht(); renderProjecten();
+}
+function confirmAddUser(){
+  const naam=document.getElementById('newUserName').value.trim();
+  if(!naam)return;
+  const initials=naam.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  users.push({id:nextUserId++,naam,initials});
+  save(); openUserModal();
+  document.getElementById('newUserName').value='';
+  document.getElementById('newUserFormModal').style.display='none';
+}
+
+// ══════════════════════════
+// NAV
+// ══════════════════════════
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  if(name==='overzicht')renderOverzicht();
+  if(name==='projecten')renderProjecten();
+}
+
+function updateNavClient(){
+  const activeKlanten=klanten.filter(k=>k.actief);
+  const txt=activeKlanten.length===0?'–':
+             activeKlanten.length===1?activeKlanten[0].naam:
+             activeKlanten.length+' klanten actief';
+  document.getElementById('navClientName').textContent=txt;
+  const sub=document.getElementById('invoer-sub');
+  if(sub)sub.textContent=activeKlanten.length?`Registreer uren voor ${activeKlanten.map(k=>k.naam).join(', ')}`:'Voeg een klant toe via Projecten';
+}
+
+// ══════════════════════════
+// INVOER
+// ══════════════════════════
+function fillToday(){
+  const d=document.getElementById('inp-datum');
+  if(d)d.value=new Date().toISOString().split('T')[0];
+}
+
+function projectOptions(selectedId){
+  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  return sorted.map(p=>{
+    const k=klanten.find(x=>x.id===p.klantId);
+    const label=k?`${p.naam} (${k.naam})`:p.naam;
+    return `<option value="${p.id}" ${p.id==selectedId?'selected':''} ${!p.actief?'style="color:#8888a0;"':''}>${label}${!p.actief?' (inactief)':''}</option>`;
+  }).join('');
+}
+
+function addEntryRow(projId='',tekst='',uren=''){
+  const id='row-'+(++rowCount||1);
+  window.rowCount=(window.rowCount||0)+1;
+  const div=document.createElement('div');
+  div.className='entry-row'; div.id=id;
+  div.innerHTML=`
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Project *</label>
+      <select class="row-project" onchange="recalcTotal()">
+        <option value="">— Kies project —</option>
+        ${projectOptions(projId)}
+      </select>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Omschrijving</label>
+      <textarea class="row-tekst" placeholder="Wat heb je gedaan…">${tekst}</textarea>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Uren *</label>
+      <input type="number" class="row-uren" min="0" max="24" step="0.25" value="${uren}" placeholder="0" style="text-align:center;" oninput="recalcTotal()">
+    </div>
+    <button class="entry-row-remove" onclick="removeRow('${id}')">✕</button>`;
+  document.getElementById('entryRows').appendChild(div);
+  recalcTotal();
+}
+window.rowCount=0;
+
+function removeRow(id){const el=document.getElementById(id);if(el)el.remove();recalcTotal();}
+
+function recalcTotal(){
+  let t=0;
+  document.querySelectorAll('.row-uren').forEach(inp=>{
+    const v=parseFloat(inp.value)||0;
+    if(v<0)inp.classList.add('error');
+    else{inp.classList.remove('error');t+=v;}
+  });
+  const el=document.getElementById('totalHours'),bar=document.getElementById('totalBar');
+  if(!el)return;
+  el.textContent=t.toFixed(2)+' u';
+  bar.className='total-bar';
+  if(t>0&&t<8)bar.classList.add('warn');
+  else if(t>=8)bar.classList.add('ok');
+}
+
+function checkDuplicate(){
+  const datum=document.getElementById('inp-datum').value;
+  const dup=entries.some(e=>e.datum===datum&&e.userId===currentUserId);
+  document.getElementById('dupWarning').style.display=dup?'block':'none';
+}
+
+function saveEntry(){
+  const datum=document.getElementById('inp-datum').value;
+  if(!datum){document.getElementById('err-datum').classList.add('show');document.getElementById('inp-datum').classList.add('error');return;}
+  document.getElementById('err-datum').classList.remove('show');document.getElementById('inp-datum').classList.remove('error');
+  const rows=document.querySelectorAll('.entry-row');
+  let hasError=false,newEntries=[];
+  rows.forEach(row=>{
+    const projId=row.querySelector('.row-project').value;
+    const tekst=row.querySelector('.row-tekst').value.trim();
+    const uren=parseFloat(row.querySelector('.row-uren').value)||0;
+    if(!projId){row.querySelector('.row-project').classList.add('error');hasError=true;}
+    else row.querySelector('.row-project').classList.remove('error');
+    if(uren<0)hasError=true;
+    if(uren>0&&projId){
+      const p=projects.find(x=>x.id==projId);
+      newEntries.push({id:nextId++,datum,userId:currentUserId,klantId:p?.klantId||null,projectId:parseInt(projId),omschrijving:tekst,uren});
+    }
+  });
+  if(hasError){showToast('Controleer de invoer','error');return;}
+  if(!newEntries.length){showToast('⚠️ Vul minstens één project met uren in','warn');return;}
+  entries=entries.filter(e=>!(e.datum===datum&&e.userId===currentUserId));
+  entries.push(...newEntries);
+  save(); clearForm();
+  showToast('✓ Registratie opgeslagen','success');
+  renderDashboard(); renderOverzicht();
+}
+
+function clearForm(){
+  const d=document.getElementById('inp-datum');if(d)d.value='';
+  document.getElementById('dupWarning').style.display='none';
+  document.getElementById('entryRows').innerHTML='';
+  window.rowCount=0; addEntryRow();
+}
+
+// ══════════════════════════
+// DASHBOARD
+// ══════════════════════════
+function populateAllFilters(){
+  // dash
+  const dm=document.getElementById('dash-medewerker'),dk=document.getElementById('dash-klant');
+  if(dm)dm.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
+  if(dk)dk.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  // ov
+  const om=document.getElementById('ov-medewerker'),ok=document.getElementById('ov-klant');
+  if(om)om.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
+  if(ok)ok.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  // proj filters
+  const pkf=document.getElementById('proj-klant-filter');
+  if(pkf)pkf.innerHTML='<option value="">Alle klanten</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  // np-klant dropdown
+  const npk=document.getElementById('np-klant');
+  if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  buildProjCheckboxes();
+  updateNavClient();
+}
+
+function renderDashboard(){
+  const med=document.getElementById('dash-medewerker')?.value||'';
+  const klant=document.getElementById('dash-klant')?.value||'';
+  const maand=document.getElementById('dash-maand')?.value||'';
+  const filtered=entries.filter(e=>{
+    const mm=!med||e.userId==med;
+    const km=!klant||e.klantId==klant;
+    const dm=!maand||e.datum.startsWith(maand);
+    return mm&&km&&dm;
+  });
+  const total=filtered.reduce((s,e)=>s+e.uren,0);
+  const days=new Set(filtered.map(e=>e.datum)).size;
+  const gem=days>0?(total/days).toFixed(1):0;
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card orange"><div class="stat-label">Totaal uren</div><div class="stat-value">${total.toFixed(1)}</div><div class="stat-sub">geselecteerde periode</div></div>
+    <div class="stat-card dark"><div class="stat-label">Gewerkte dagen</div><div class="stat-value">${days}</div><div class="stat-sub">dagen met registratie</div></div>
+    <div class="stat-card mid"><div class="stat-label">Gem. per dag</div><div class="stat-value">${gem}</div><div class="stat-sub">uur gemiddeld</div></div>`;
+
+  // Project bars
+  const projT={};
+  filtered.forEach(e=>{projT[e.projectId]=(projT[e.projectId]||0)+e.uren;});
+  const sortedP=Object.entries(projT).sort((a,b)=>b[1]-a[1]).slice(0,8);
+  const maxP=sortedP.length?Math.max(...sortedP.map(s=>s[1])):1;
+  document.getElementById('projectChart').innerHTML=sortedP.length
+    ?sortedP.map(([pid,u])=>{const p=projects.find(x=>x.id==pid);const h=Math.round((u/maxP)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar" style="height:${h}px;"></div><div class="chart-label" style="max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${p?p.code:pid}</div></div>`;}).join('')
+    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+
+  // Pie chart uren per actieve klant
+  drawKlantPie(filtered);
+
+  // Week bars
+  const weekM={};
+  filtered.forEach(e=>{const wk=getWeek(new Date(e.datum));weekM[wk]=(weekM[wk]||0)+e.uren;});
+  const weeks=Object.entries(weekM).sort((a,b)=>a[0]-b[0]).slice(-8);
+  const maxW=weeks.length?Math.max(...weeks.map(w=>w[1])):1;
+  document.getElementById('weekChart').innerHTML=weeks.length
+    ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
+    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+
+  // Maand bars (all entries, filter by med/klant only)
+  const maandAll=entries.filter(e=>(!med||e.userId==med)&&(!klant||e.klantId==klant));
+  const maandM={};
+  maandAll.forEach(e=>{const mo=e.datum.slice(0,7);maandM[mo]=(maandM[mo]||0)+e.uren;});
+  const maanden=Object.entries(maandM).sort((a,b)=>a[0].localeCompare(b[0]));
+  const maxM=maanden.length?Math.max(...maanden.map(m=>m[1])):1;
+  const mn=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+  document.getElementById('maandChart').innerHTML=maanden.length
+    ?maanden.map(([ym,u])=>{const[yr,mo]=ym.split('-');const h=Math.round((u/maxM)*100);const isSel=maand&&ym===maand;return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar ${isSel?'dark':''}" style="height:${h}px;"></div><div class="chart-label">${mn[parseInt(mo)-1]} ${yr.slice(2)}</div></div>`;}).join('')
+    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+}
+
+function drawKlantPie(filtered){
+  const canvas=document.getElementById('klantPie');
+  const legend=document.getElementById('klantPieLegend');
+  if(!canvas||!legend)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,160,160);
+
+  // Build data: uren per klant (only active klanten)
+  const klantT={};
+  filtered.forEach(e=>{if(e.klantId)klantT[e.klantId]=(klantT[e.klantId]||0)+e.uren;});
+
+  // Include entries without klant
+  const noKlant=filtered.filter(e=>!e.klantId).reduce((s,e)=>s+e.uren,0);
+  const data=[];
+  klanten.forEach(k=>{if(klantT[k.id])data.push({label:k.naam,value:klantT[k.id]});});
+  if(noKlant>0)data.push({label:'Geen klant',value:noKlant});
+
+  const total=data.reduce((s,d)=>s+d.value,0);
+
+  if(!total){
+    ctx.font='bold 12px Nunito Sans,sans-serif';
+    ctx.fillStyle='#8888a0';
+    ctx.textAlign='center';
+    ctx.fillText('Geen data',80,85);
+    legend.innerHTML='';
+    return;
+  }
+
+  // Draw pie
+  let angle=-Math.PI/2;
+  const cx=80,cy=80,r=70;
+  data.forEach((d,i)=>{
+    const slice=(d.value/total)*2*Math.PI;
+    ctx.beginPath();
+    ctx.moveTo(cx,cy);
+    ctx.arc(cx,cy,r,angle,angle+slice);
+    ctx.closePath();
+    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];
+    ctx.fill();
+    ctx.strokeStyle='white';
+    ctx.lineWidth=2;
+    ctx.stroke();
+    angle+=slice;
+  });
+
+  // Center hole (donut)
+  ctx.beginPath();
+  ctx.arc(cx,cy,40,0,2*Math.PI);
+  ctx.fillStyle='white';
+  ctx.fill();
+
+  // Center text
+  ctx.font='bold 14px Nunito Sans,sans-serif';
+  ctx.fillStyle='#2563EB';
+  ctx.textAlign='center';
+  ctx.fillText(total.toFixed(0)+'u',cx,cy-4);
+  ctx.font='11px Nunito Sans,sans-serif';
+  ctx.fillStyle='#8888a0';
+  ctx.fillText('totaal',cx,cy+12);
+
+  // Legend
+  legend.innerHTML=data.map((d,i)=>{
+    const pct=((d.value/total)*100).toFixed(0);
+    return`<div class="pie-legend-item">
+      <div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div>
+      <span>${d.label}</span>
+      <span class="pie-legend-pct">${pct}%</span>
+      <span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span>
+    </div>`;
+  }).join('');
+}
+
+function clearDashFilter(){
+  ['dash-medewerker','dash-klant','dash-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  renderDashboard();
+}
+
+function getWeek(d){
+  d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+  const ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-ys)/86400000)+1)/7);
+}
+
+// ══════════════════════════
+// OVERZICHT
+// ══════════════════════════
+function buildProjCheckboxes(){
+  const c=document.getElementById('proj-filter-checkboxes');if(!c)return;
+  c.innerHTML=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl')).map(p=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--gray-700);"
+      onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="proj-filter-cb" value="${p.id}" onchange="renderOverzicht();updateProjLabel()"
+        style="width:15px;height:15px;cursor:pointer;accent-color:var(--secondary);">
+      <span>${p.naam}</span>${!p.actief?'<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(inactief)</span>':''}
+    </label>`).join('');
+}
+
+function toggleProjDropdown(){const dd=document.getElementById('proj-filter-dropdown');dd.style.display=dd.style.display==='none'?'block':'none';}
+function updateProjLabel(){const checked=[...document.querySelectorAll('.proj-filter-cb:checked')];const btn=document.getElementById('proj-filter-label');if(!btn)return;if(!checked.length){btn.textContent='Alle projecten';return;}if(checked.length===1){const p=projects.find(x=>x.id==checked[0].value);btn.textContent=p?p.naam:'1 project';}else btn.textContent=checked.length+' projecten';}
+function selectAllProjects(){document.querySelectorAll('.proj-filter-cb').forEach(cb=>cb.checked=true);updateProjLabel();renderOverzicht();}
+function deselectAllProjects(){document.querySelectorAll('.proj-filter-cb').forEach(cb=>cb.checked=false);updateProjLabel();renderOverzicht();}
+
+document.addEventListener('click',function(e){
+  const dd=document.getElementById('proj-filter-dropdown'),btn=document.getElementById('proj-filter-btn');
+  if(dd&&btn&&!dd.contains(e.target)&&!btn.contains(e.target))dd.style.display='none';
+});
+
+function renderOverzicht(){
+  const checked=[...document.querySelectorAll('.proj-filter-cb:checked')].map(cb=>parseInt(cb.value));
+  const med=document.getElementById('ov-medewerker')?.value||'';
+  const klant=document.getElementById('ov-klant')?.value||'';
+  const maand=document.getElementById('ov-maand')?.value||'';
+  const van=document.getElementById('ov-van')?.value||'';
+  const tot=document.getElementById('ov-tot')?.value||'';
+  let filtered=entries.filter(e=>{
+    return(!checked.length||checked.includes(e.projectId))&&
+      (!maand||e.datum.startsWith(maand))&&
+      (!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!med||e.userId==med)&&(!klant||e.klantId==klant);
+  }).sort((a,b)=>b.datum.localeCompare(a.datum));
+  const bar=document.getElementById('ov-totaal-bar');
+  if(filtered.length&&bar){const t=filtered.reduce((s,e)=>s+e.uren,0);const d=new Set(filtered.map(e=>e.datum)).size;bar.style.display='block';bar.innerHTML=`📊 <strong>${filtered.length}</strong> registraties &nbsp;·&nbsp; <strong>${d}</strong> dagen &nbsp;·&nbsp; Totaal: <strong>${t.toFixed(2)} uur</strong>`;}
+  else if(bar)bar.style.display='none';
+  const tbody=document.getElementById('overzichtTable');if(!tbody)return;
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><h3>Geen registraties</h3></div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId);
+    const u=users.find(x=>x.id===e.userId);
+    const k=klanten.find(x=>x.id===e.klantId);
+    const ds=new Date(e.datum).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'});
+    return`<tr>
+      <td style="white-space:nowrap;font-weight:700;">${ds}</td>
+      <td><span class="badge badge-dark">${u?u.initials:'?'}</span></td>
+      <td style="font-size:12px;color:var(--gray-500);">${k?k.naam:'—'}</td>
+      <td><span class="badge badge-blue">${p?p.naam:'Onbekend'}</span></td>
+      <td style="color:var(--gray-500);font-size:12px;max-width:300px;">${e.omschrijving||'—'}</td>
+      <td style="font-weight:800;color:var(--secondary);white-space:nowrap;">${e.uren.toFixed(2)} u</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function syncMaandToPeriod(){const m=document.getElementById('ov-maand')?.value;if(m){['ov-van','ov-tot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}}
+function clearMaand(){const m=document.getElementById('ov-maand');if(m)m.value='';}
+function deleteEntry(id){if(!confirm('Verwijderen?'))return;entries=entries.filter(e=>e.id!==id);save();renderOverzicht();renderDashboard();showToast('Verwijderd','warn');}
+function clearOvFilters(){deselectAllProjects();['ov-maand','ov-van','ov-tot','ov-medewerker','ov-klant'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderOverzicht();}
+
+// ══════════════════════════
+// PROJECTEN & KLANTEN
+// ══════════════════════════
+function renderProjecten(){
+  // Klant cards
+  const cc=document.getElementById('klantCards');
+  if(cc)cc.innerHTML=klanten.length
+    ?klanten.map(k=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border:1.5px solid ${k.actief?'var(--secondary)':'var(--border)'};border-radius:10px;background:${k.actief?'var(--secondary-light)':'white'};">
+        <span style="font-size:14px;font-weight:700;color:var(--dark);">${k.naam}</span>
+        <button class="toggle ${k.actief?'on':''}" onclick="toggleKlant(${k.id})" title="${k.actief?'Zet inactief':'Zet actief'}"></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteKlant(${k.id})">✕</button>
+      </div>`).join('')
+    :'<span style="font-size:13px;color:var(--gray-400);">Nog geen klanten. Klik op + Klant toevoegen.</span>';
+
+  // Projects table
+  const klantF=document.getElementById('proj-klant-filter')?.value||'';
+  const statusF=document.getElementById('proj-status-filter')?.value||'all';
+  let list=projects.filter(p=>(!klantF||p.klantId==klantF)&&(statusF==='all'||(statusF==='active'&&p.actief)||(statusF==='inactive'&&!p.actief)));
+  list=list.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+
+  document.getElementById('projectenTable').innerHTML=list.map(p=>{
+    const total=entries.filter(e=>e.projectId===p.id).reduce((s,e)=>s+e.uren,0);
+    const k=klanten.find(x=>x.id===p.klantId);
+    return`<tr id="proj-row-${p.id}">
+      <td><strong>${p.naam}</strong></td>
+      <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code></td>
+      <td>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</td>
+      <td style="font-weight:700;">${total.toFixed(1)} u</td>
+      <td><div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button>
+      </td>
+    </tr>
+    <tr id="proj-edit-${p.id}" style="display:none;background:var(--gray-50);">
+      <td colspan="6" style="padding:10px 14px;">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label>Naam</label><input type="text" id="edit-naam-${p.id}" value="${p.naam}" style="max-width:200px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label>Code</label><input type="text" id="edit-code-${p.id}" value="${p.code}" style="max-width:120px;">
+          </div>
+          <div style="display:flex;flex-direction:column;gap:4px;">
+            <label>Klant</label>
+            <select id="edit-klant-${p.id}" style="max-width:200px;">
+              <option value="">Geen klant</option>
+              ${klanten.map(k=>`<option value="${k.id}" ${k.id===p.klantId?'selected':''}>${k.naam}</option>`).join('')}
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEdit(${p.id})">✓ Opslaan</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEdit(${p.id})">Annuleren</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function startEdit(id){document.getElementById(`proj-edit-${id}`).style.display='table-row';document.getElementById(`edit-naam-${id}`).focus();}
+function cancelEdit(id){document.getElementById(`proj-edit-${id}`).style.display='none';}
+function saveEdit(id){
+  const p=projects.find(x=>x.id===id);
+  const n=document.getElementById(`edit-naam-${id}`).value.trim();
+  const c=document.getElementById(`edit-code-${id}`).value.trim();
+  const kv=document.getElementById(`edit-klant-${id}`).value;
+  if(!n){showToast('Naam mag niet leeg zijn','error');return;}
+  p.naam=n;if(c)p.code=c;p.klantId=kv?parseInt(kv):null;
+  projects.sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  refreshAllDropdowns();save();renderProjecten();
+  showToast(`Project bijgewerkt`,'success');
+}
+
+function toggleProject(id){const p=projects.find(x=>x.id===id);if(p){p.actief=!p.actief;refreshAllDropdowns();save();renderProjecten();showToast(`${p.naam} is nu ${p.actief?'actief':'inactief'}`,'success');}}
+function deleteProject(id){const p=projects.find(x=>x.id===id);if(!confirm(`"${p.naam}" verwijderen?`))return;projects=projects.filter(x=>x.id!==id);save();refreshAllDropdowns();renderProjecten();showToast('Project verwijderd','warn');}
+
+function showAddProject(){document.getElementById('addProjectForm').style.display='block';const npk=document.getElementById('np-klant');if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');}
+function hideAddProject(){document.getElementById('addProjectForm').style.display='none';['np-naam','np-code'].forEach(id=>document.getElementById(id).value='');}
+
+function addProject(){
+  const naam=document.getElementById('np-naam').value.trim();
+  const klantVal=document.getElementById('np-klant').value;
+  if(!naam){document.getElementById('err-np-naam').classList.add('show');return;}
+  document.getElementById('err-np-naam').classList.remove('show');
+  const code=document.getElementById('np-code').value.trim()||naam.toUpperCase().replace(/\s+/g,'_').slice(0,10);
+  projects.push({id:nextProjId++,naam,code,klantId:klantVal?parseInt(klantVal):null,actief:true});
+  projects.sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  hideAddProject();refreshAllDropdowns();save();renderProjecten();
+  showToast(`"${naam}" toegevoegd`,'success');
+}
+
+// Klanten
+function showAddKlant(){document.getElementById('addKlantForm').style.display='block';document.getElementById('nk-naam').focus();}
+function hideAddKlant(){document.getElementById('addKlantForm').style.display='none';document.getElementById('nk-naam').value='';}
+function addKlant(){
+  const naam=document.getElementById('nk-naam').value.trim();
+  if(!naam){document.getElementById('err-nk-naam').classList.add('show');return;}
+  document.getElementById('err-nk-naam').classList.remove('show');
+  klanten.push({id:nextKlantId++,naam,actief:true});
+  hideAddKlant();save();populateAllFilters();renderProjecten();
+  showToast(`${naam} toegevoegd`,'success');
+}
+function toggleKlant(id){const k=klanten.find(x=>x.id===id);if(k){k.actief=!k.actief;save();renderProjecten();updateNavClient();showToast(`${k.naam} is nu ${k.actief?'actief':'inactief'}`,'success');}}
+function deleteKlant(id){const k=klanten.find(x=>x.id===id);if(!confirm(`"${k.naam}" verwijderen?`))return;klanten=klanten.filter(x=>x.id!==id);projects.forEach(p=>{if(p.klantId===id)p.klantId=null;});save();populateAllFilters();renderProjecten();updateNavClient();showToast('Klant verwijderd','warn');}
+
+function refreshAllDropdowns(){
+  document.querySelectorAll('.row-project').forEach(sel=>{const cur=sel.value;sel.innerHTML=`<option value="">— Kies project —</option>${projectOptions(cur)}`;});
+  buildProjCheckboxes();
+}
+
+// ══════════════════════════
+// EXPORT
+// ══════════════════════════
+function getFilteredForExport(){
+  const checked=[...document.querySelectorAll('.proj-filter-cb:checked')].map(cb=>parseInt(cb.value));
+  const med=document.getElementById('ov-medewerker')?.value||'';
+  const klant=document.getElementById('ov-klant')?.value||'';
+  const maand=document.getElementById('ov-maand')?.value||'';
+  const van=document.getElementById('ov-van')?.value||'';
+  const tot=document.getElementById('ov-tot')?.value||'';
+  return entries.filter(e=>{
+    return(!checked.length||checked.includes(e.projectId))&&
+      (!maand||e.datum.startsWith(maand))&&
+      (!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!med||e.userId==med)&&(!klant||e.klantId==klant);
+  }).sort((a,b)=>a.datum.localeCompare(b.datum));
+}
+function exportCSV(onlyFiltered=false){
+  const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  const rows=[['Datum','Medewerker','Klant','Project','Omschrijving','Uren']];
+  data.forEach(e=>{
+    const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
+    rows.push([e.datum,u?u.naam:'',k?k.naam:'',p?p.naam:'',`"${(e.omschrijving||'').replace(/"/g,'""')}"`,e.uren]);
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=onlyFiltered?'uren_selectie.csv':'uren_alles.csv';a.click();
+  showToast(`CSV geëxporteerd (${data.length} rijen)`,'success');
+}
+function exportExcel(onlyFiltered=false){
+  const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  const h=['Datum','Medewerker','Klant','Project','Omschrijving','Uren'];
+  const rows=data.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
+    return`<tr><td>${e.datum}</td><td>${u?u.naam:''}</td><td>${k?k.naam:''}</td><td>${p?p.naam:''}</td><td>${e.omschrijving||''}</td><td>${e.uren}</td></tr>`;
+  }).join('');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></body></html>`],{type:'application/vnd.ms-excel;charset=utf-8;'}));
+  a.download=onlyFiltered?'uren_selectie.xls':'uren_alles.xls';a.click();
+  showToast(`Excel geëxporteerd (${data.length} rijen)`,'success');
+}
+
+// ══════════════════════════
+// TOAST
+// ══════════════════════════
+let toastTimer;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
+}
+</script>
+</body>
+</html>
