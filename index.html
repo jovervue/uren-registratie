@@ -261,7 +261,7 @@
         <input type="date" id="inp-datum" oninput="checkDuplicate()">
         <span class="error-msg" id="err-datum">Vul een datum in</span>
       </div>
-      <div id="dupWarning" class="dup-warning">⚠️ <strong>Let op:</strong> Er bestaat al een registratie voor deze datum. Opslaan overschrijft de bestaande invoer.</div>
+      <div id="dupWarning" class="dup-warning">⚠️ <strong>Let op:</strong> Er bestaat al een registratie voor deze datum. Nieuwe rijen worden toegevoegd aan de bestaande invoer.</div>
     </div>
     <div class="entry-rows" id="entryRows"></div>
     <button class="add-row-btn" onclick="addEntryRow()">+ Project toevoegen</button>
@@ -671,7 +671,6 @@ function saveEntry(){
   });
   if(hasError){showToast('Controleer de invoer','error');return;}
   if(!newEntries.length){showToast('⚠️ Vul minstens één project met uren in','warn');return;}
-  entries=entries.filter(e=>!(e.datum===datum&&e.userId===currentUserId));
   entries.push(...newEntries);
   save(); clearForm();
   showToast('✓ Registratie opgeslagen','success');
