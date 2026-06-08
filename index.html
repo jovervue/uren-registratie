@@ -5,26 +5,26 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Urenregistratie – CvoorU</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!-- Firebase v9 compat (geen module, werkt met globale variabelen) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
   :root {
-    /* New palette */
-    --primary:#1E3A8A;      /* Diep blauw */
-    --secondary:#2563EB;    /* Helder blauw */
-    --accent:#22C55E;       /* Fris groen */
-    --warn:#F59E0B;         /* Amber */
-    --red:#EF4444;          /* Fout/overuren */
+    --primary:#1E3A8A;
+    --secondary:#2563EB;
+    --accent:#22C55E;
+    --warn:#F59E0B;
+    --red:#EF4444;
     --red-light:#FEF2F2;
-    --bg:#F8FAFC;           /* Achtergrond */
-    --card:#FFFFFF;         /* Kaarten */
-    --text:#0F172A;         /* Primaire tekst */
-    --text-muted:#64748B;   /* Secundaire tekst */
-    --border:#E2E8F0;       /* Borders */
-    /* Derived helpers */
+    --bg:#F8FAFC;
+    --card:#FFFFFF;
+    --text:#0F172A;
+    --text-muted:#64748B;
+    --border:#E2E8F0;
     --secondary-light:#EFF6FF;
     --accent-light:#F0FDF4;
     --warn-light:#FFFBEB;
     --primary-light:#EFF6FF;
-    /* Legacy aliases keep old JS working */
     --orange:var(--secondary);
     --orange-light:var(--secondary-light);
     --orange-mid:#93C5FD;
@@ -43,12 +43,9 @@
   *{margin:0;padding:0;box-sizing:border-box;}
   body{font-family:'Nunito Sans',sans-serif;background:var(--gray-50);color:var(--dark);min-height:100vh;font-size:14px;}
 
-  /* ── NAV ── */
   .nav{background:linear-gradient(135deg,var(--primary) 0%,#162d6e 100%);padding:0 24px;display:flex;align-items:center;height:64px;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(17,17,40,.3);}
   .nav-brand{display:flex;align-items:center;gap:0;text-decoration:none;flex-shrink:0;}
   .nav-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px;}
-  .nav-client-name{font-size:12px;font-weight:700;color:rgba(255,255,255,.7);letter-spacing:.3px;}
-  .nav-client-sub{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:.5px;text-transform:uppercase;margin-top:1px;}
   .nav-tabs{display:flex;gap:2px;flex:1;}
   .nav-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.55);border:none;background:none;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
   .nav-tab:hover{background:rgba(255,255,255,.1);color:white;}
@@ -58,7 +55,12 @@
   .nav-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;}
   .nav-username{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
 
-  /* ── USER SELECT MODAL ── */
+  /* sync indicator */
+  .sync-bar{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:#1e3a8a;color:white;font-size:12px;font-weight:700;text-align:center;padding:6px;letter-spacing:.5px;}
+  .sync-bar.show{display:block;}
+  .sync-bar.ok{background:#16a34a;}
+  .sync-bar.err{background:#dc2626;}
+
   .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,17,40,.7);z-index:200;align-items:center;justify-content:center;}
   .modal-overlay.show{display:flex;}
   .modal{background:white;border-radius:16px;padding:32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
@@ -69,19 +71,16 @@
   .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;}
   .user-avatar.alt{background:linear-gradient(135deg,var(--primary),#162d6e);}
 
-  /* ── PAGES ── */
   .page{display:none;padding:24px;max-width:1100px;margin:0 auto;}
   .page.active{display:block;}
   .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
   .page-header h1{font-size:22px;font-weight:800;color:var(--dark);}
   .page-header p{font-size:13px;color:var(--gray-400);margin-top:2px;}
 
-  /* ── CARDS ── */
   .card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;}
   .card-title{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;}
   .mb-16{margin-bottom:16px;} .mb-24{margin-bottom:24px;} .mb-20{margin-bottom:20px;}
 
-  /* ── STAT CARDS ── */
   .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
   .stat-card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
   .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
@@ -92,7 +91,6 @@
   .stat-value{font-size:28px;font-weight:900;color:var(--dark);margin:4px 0 2px;line-height:1;}
   .stat-sub{font-size:11px;color:var(--gray-400);}
 
-  /* ── FORM ── */
   .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
   label{font-size:10px;font-weight:800;color:var(--gray-500);letter-spacing:.8px;text-transform:uppercase;}
   input,select,textarea{font-family:'Nunito Sans',sans-serif;font-size:14px;border:1.5px solid var(--gray-200);border-radius:8px;padding:9px 12px;color:var(--dark);background:white;transition:border-color .15s;outline:none;width:100%;}
@@ -102,7 +100,6 @@
   .error-msg.show{display:block;}
   textarea{resize:vertical;min-height:52px;}
 
-  /* ── ENTRY ROWS ── */
   .entry-rows{display:flex;flex-direction:column;gap:10px;}
   .entry-row{display:grid;grid-template-columns:220px 1fr 90px 36px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
   .entry-row select,.entry-row textarea,.entry-row input{font-size:13px;padding:7px 10px;}
@@ -112,14 +109,12 @@
   .add-row-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--secondary-light);color:var(--secondary);border:1.5px dashed var(--secondary);border-radius:8px;cursor:pointer;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;transition:all .15s;width:100%;justify-content:center;margin-top:8px;}
   .add-row-btn:hover{background:#DBEAFE;}
 
-  /* ── TOTAL BAR ── */
   .total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 16px;margin-top:14px;}
   .total-bar span{font-size:13px;color:var(--gray-500);font-weight:600;}
   .total-bar strong{font-size:18px;font-weight:900;color:var(--secondary);}
   .total-bar.warn strong{color:#d97706;}
   .total-bar.ok strong{color:var(--accent);}
 
-  /* ── BUTTONS ── */
   .btn{padding:9px 20px;border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
   .btn-primary{background:var(--secondary);color:white;} .btn-primary:hover{background:var(--primary);}
   .btn-dark{background:var(--primary);color:white;} .btn-dark:hover{background:#162d6e;}
@@ -128,7 +123,6 @@
   .btn-sm{padding:5px 12px;font-size:12px;border-radius:6px;}
   .btn-row{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
 
-  /* ── TABLE ── */
   .table-wrap{overflow-x:auto;border-radius:var(--radius);}
   table{width:100%;border-collapse:collapse;}
   thead th{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);padding:10px 14px;text-align:left;background:var(--gray-50);border-bottom:1px solid var(--gray-200);white-space:nowrap;}
@@ -142,12 +136,10 @@
   .badge-dark{background:#EFF6FF;color:var(--primary);}
   .badge-gray{background:var(--gray-100);color:var(--gray-400);}
 
-  /* ── FILTERS ── */
   .filter-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
   .filter-row select,.filter-row input{max-width:200px;padding:7px 12px;font-size:13px;}
   .filter-label{font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
 
-  /* ── CHARTS ── */
   .chart-bars{display:flex;align-items:flex-end;gap:8px;padding:0 4px;margin-top:8px;}
   .chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
   .chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--secondary),var(--primary));min-height:4px;}
@@ -157,21 +149,18 @@
   .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
   .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
 
-  /* ── PIE CHART ── */
   .pie-wrap{display:flex;align-items:center;gap:32px;flex-wrap:wrap;}
   .pie-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
   .pie-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--gray-700);}
   .pie-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
   .pie-legend-pct{margin-left:auto;font-weight:800;color:var(--dark);}
 
-  /* ── TOGGLE ── */
   .toggle-wrap{display:flex;align-items:center;gap:8px;}
   .toggle{width:36px;height:20px;background:var(--gray-300);border-radius:20px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0;}
   .toggle::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
   .toggle.on{background:var(--accent);}
   .toggle.on::after{transform:translateX(16px);}
 
-  /* ── TOAST ── */
   .toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:999;}
   .toast.show{transform:translateY(0);opacity:1;}
   .toast.success{border-left:3px solid #16a34a;} .toast.error{border-left:3px solid var(--red);} .toast.warn{border-left:3px solid #d97706;}
@@ -188,6 +177,9 @@
 </style>
 </head>
 <body>
+
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar">⏳ Data laden van cloud…</div>
 
 <!-- USER MODAL -->
 <div class="modal-overlay" id="userModal">
@@ -210,7 +202,6 @@
 <!-- NAV -->
 <nav class="nav">
   <div class="nav-brand" style="display:flex;align-items:center;gap:10px;">
-    <!-- Clock icon mark -->
     <div style="width:38px;height:38px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);">
       <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
         <circle cx="12" cy="12" r="9.5" stroke="#1E3A8A" stroke-width="2"/>
@@ -218,7 +209,6 @@
         <path d="M7 3.5C5.1 4.6 3.6 6.4 3 8.5" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
       </svg>
     </div>
-    <!-- Wordmark -->
     <div style="display:flex;flex-direction:column;line-height:1;">
       <span style="font-size:15px;font-weight:900;color:white;letter-spacing:-.3px;">time<span style="color:#22C55E;">track</span></span>
       <span style="font-size:8.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.8px;text-transform:uppercase;">by CvoorU</span>
@@ -386,7 +376,6 @@
     </div>
   </div>
 
-  <!-- Add klant form -->
   <div class="card mb-16" id="addKlantForm" style="display:none;">
     <div class="card-title">Nieuwe klant</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
@@ -402,7 +391,6 @@
     </div>
   </div>
 
-  <!-- Add project form -->
   <div class="card mb-16" id="addProjectForm" style="display:none;">
     <div class="card-title">Nieuw project</div>
     <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
@@ -417,9 +405,7 @@
       </div>
       <div class="form-group" style="margin:0;">
         <label>Klant *</label>
-        <select id="np-klant">
-          <option value="">— Kies klant —</option>
-        </select>
+        <select id="np-klant"><option value="">— Kies klant —</option></select>
         <span class="error-msg" id="err-np-klant">Kies een klant</span>
       </div>
     </div>
@@ -429,13 +415,11 @@
     </div>
   </div>
 
-  <!-- Klanten cards -->
   <div class="card mb-16">
     <div class="card-title">Actieve klanten</div>
     <div id="klantCards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
   </div>
 
-  <!-- Projects table -->
   <div class="card">
     <div class="filter-row" style="margin-bottom:12px;">
       <span class="filter-label">Filter:</span>
@@ -458,6 +442,108 @@
 <div class="toast" id="toast"></div>
 
 <script>
+// ══════════════════════════
+// FIREBASE INIT (compat SDK – werkt met globale variabelen)
+// ══════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAGVCfjJX5HXUbKTjGRm6JvbeXaZ2mEpBI",
+  authDomain: "cvooru-uren.firebaseapp.com",
+  projectId: "cvooru-uren",
+  storageBucket: "cvooru-uren.firebasestorage.app",
+  messagingSenderId: "796476954078",
+  appId: "1:796476954078:web:56200961c74f02d808b94f"
+};
+
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const DOC = db.collection('data').doc('main');
+
+let fbListenerActive = false;
+
+function showSyncBar(msg, type='') {
+  const bar = document.getElementById('syncBar');
+  bar.textContent = msg;
+  bar.className = 'sync-bar show' + (type ? ' ' + type : '');
+  if (type === 'ok' || type === 'err') {
+    setTimeout(() => bar.classList.remove('show'), 3000);
+  }
+}
+
+async function fbSave() {
+  try {
+    await DOC.set({
+      users, klanten, projects, entries,
+      lastUserId: lastUserId || null,
+      ids: { nextId, nextUserId, nextKlantId, nextProjId },
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
+    });
+    showSyncBar('☁ Opgeslagen in cloud', 'ok');
+  } catch(e) {
+    console.error('Firebase save error:', e);
+    showSyncBar('⚠ Cloud opslaan mislukt – lokaal opgeslagen', 'err');
+  }
+}
+
+async function fbLoad() {
+  showSyncBar('⏳ Data laden van cloud…');
+  try {
+    const snap = await DOC.get();
+    if (snap.exists) {
+      const d = snap.data();
+      if (d.users)    users    = d.users;
+      if (d.klanten)  klanten  = d.klanten;
+      if (d.projects) projects = d.projects;
+      if (d.entries)  entries  = d.entries;
+      if (d.lastUserId !== undefined) lastUserId = d.lastUserId;
+      if (d.ids) {
+        nextId      = d.ids.nextId      || 1;
+        nextUserId  = d.ids.nextUserId  || 2;
+        nextKlantId = d.ids.nextKlantId || 1;
+        nextProjId  = d.ids.nextProjId  || 15;
+      }
+      showSyncBar('✓ Data geladen van cloud', 'ok');
+    } else {
+      // Geen cloud data: stuur lokale data naar cloud
+      showSyncBar('☁ Eerste sync: lokale data uploaden…');
+      load(); // laad lokaal eerst
+      await fbSave();
+    }
+  } catch(e) {
+    console.error('Firebase load error:', e);
+    showSyncBar('⚠ Geen cloudverbinding – lokale data gebruikt', 'err');
+    load(); // fallback naar localStorage
+  }
+}
+
+function startFbListener() {
+  if (fbListenerActive) return;
+  fbListenerActive = true;
+  DOC.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    if (!d.updatedAt) return; // skip lege updates
+    // Vergelijk timestamp om eigen saves niet te herverwerken
+    if (d.users)    users    = d.users;
+    if (d.klanten)  klanten  = d.klanten;
+    if (d.projects) projects = d.projects;
+    if (d.entries)  entries  = d.entries;
+    if (d.ids) {
+      nextId      = d.ids.nextId      || nextId;
+      nextUserId  = d.ids.nextUserId  || nextUserId;
+      nextKlantId = d.ids.nextKlantId || nextKlantId;
+      nextProjId  = d.ids.nextProjId  || nextProjId;
+    }
+    // Herrender actieve pagina
+    populateAllFilters();
+    renderDashboard();
+    renderOverzicht();
+    renderProjecten();
+    showSyncBar('🔄 Sync van ander toestel ontvangen', 'ok');
+  }, err => {
+    console.error('Firestore listener error:', err);
+  });
+}
+
 // ══════════════════════════
 // DATA
 // ══════════════════════════
@@ -486,7 +572,7 @@ let currentUserId=null, lastUserId=null;
 const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
 
 // ══════════════════════════
-// PERSIST
+// PERSIST (localStorage als backup)
 // ══════════════════════════
 function save(){
   localStorage.setItem('cv_users',JSON.stringify(users));
@@ -495,6 +581,8 @@ function save(){
   localStorage.setItem('cv_entries',JSON.stringify(entries));
   localStorage.setItem('cv_lastUser',lastUserId||'');
   localStorage.setItem('cv_ids',JSON.stringify({nextId,nextUserId,nextKlantId,nextProjId}));
+  // Ook naar Firebase sturen
+  fbSave();
 }
 function load(){
   try{
@@ -513,9 +601,11 @@ function load(){
 // ══════════════════════════
 // INIT
 // ══════════════════════════
-document.addEventListener('DOMContentLoaded',()=>{
-  load();
-  // Auto-login with last user or first user
+document.addEventListener('DOMContentLoaded', async () => {
+  // Laad eerst van Firebase, dan UI opstarten
+  await fbLoad();
+  startFbListener();
+
   const uid = lastUserId && users.find(u=>u.id===lastUserId) ? lastUserId : (users[0]?.id||null);
   if(uid) doLogin(uid);
   else openUserModal();
@@ -576,10 +666,6 @@ function showPage(name,btn){
 
 function updateNavClient(){
   const activeKlanten=klanten.filter(k=>k.actief);
-  const txt=activeKlanten.length===0?'–':
-             activeKlanten.length===1?activeKlanten[0].naam:
-             activeKlanten.length+' klanten actief';
-  document.getElementById('navClientName').textContent=txt;
   const sub=document.getElementById('invoer-sub');
   if(sub)sub.textContent=activeKlanten.length?`Registreer uren voor ${activeKlanten.map(k=>k.naam).join(', ')}`:'Voeg een klant toe via Projecten';
 }
@@ -602,8 +688,8 @@ function projectOptions(selectedId){
 }
 
 function addEntryRow(projId='',tekst='',uren=''){
-  const id='row-'+(++rowCount||1);
   window.rowCount=(window.rowCount||0)+1;
+  const id='row-'+window.rowCount;
   const div=document.createElement('div');
   div.className='entry-row'; div.id=id;
   div.innerHTML=`
@@ -688,18 +774,14 @@ function clearForm(){
 // DASHBOARD
 // ══════════════════════════
 function populateAllFilters(){
-  // dash
   const dm=document.getElementById('dash-medewerker'),dk=document.getElementById('dash-klant');
   if(dm)dm.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
   if(dk)dk.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  // ov
   const om=document.getElementById('ov-medewerker'),ok=document.getElementById('ov-klant');
   if(om)om.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
   if(ok)ok.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  // proj filters
   const pkf=document.getElementById('proj-klant-filter');
   if(pkf)pkf.innerHTML='<option value="">Alle klanten</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  // np-klant dropdown
   const npk=document.getElementById('np-klant');
   if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
   buildProjCheckboxes();
@@ -711,10 +793,7 @@ function renderDashboard(){
   const klant=document.getElementById('dash-klant')?.value||'';
   const maand=document.getElementById('dash-maand')?.value||'';
   const filtered=entries.filter(e=>{
-    const mm=!med||e.userId==med;
-    const km=!klant||e.klantId==klant;
-    const dm=!maand||e.datum.startsWith(maand);
-    return mm&&km&&dm;
+    return(!med||e.userId==med)&&(!klant||e.klantId==klant)&&(!maand||e.datum.startsWith(maand));
   });
   const total=filtered.reduce((s,e)=>s+e.uren,0);
   const days=new Set(filtered.map(e=>e.datum)).size;
@@ -724,7 +803,6 @@ function renderDashboard(){
     <div class="stat-card dark"><div class="stat-label">Gewerkte dagen</div><div class="stat-value">${days}</div><div class="stat-sub">dagen met registratie</div></div>
     <div class="stat-card mid"><div class="stat-label">Gem. per dag</div><div class="stat-value">${gem}</div><div class="stat-sub">uur gemiddeld</div></div>`;
 
-  // Project bars
   const projT={};
   filtered.forEach(e=>{projT[e.projectId]=(projT[e.projectId]||0)+e.uren;});
   const sortedP=Object.entries(projT).sort((a,b)=>b[1]-a[1]).slice(0,8);
@@ -733,10 +811,8 @@ function renderDashboard(){
     ?sortedP.map(([pid,u])=>{const p=projects.find(x=>x.id==pid);const h=Math.round((u/maxP)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar" style="height:${h}px;"></div><div class="chart-label" style="max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${p?p.code:pid}</div></div>`;}).join('')
     :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
 
-  // Pie chart uren per actieve klant
   drawKlantPie(filtered);
 
-  // Week bars
   const weekM={};
   filtered.forEach(e=>{const wk=getWeek(new Date(e.datum));weekM[wk]=(weekM[wk]||0)+e.uren;});
   const weeks=Object.entries(weekM).sort((a,b)=>a[0]-b[0]).slice(-8);
@@ -745,7 +821,6 @@ function renderDashboard(){
     ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
     :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
 
-  // Maand bars (all entries, filter by med/klant only)
   const maandAll=entries.filter(e=>(!med||e.userId==med)&&(!klant||e.klantId==klant));
   const maandM={};
   maandAll.forEach(e=>{const mo=e.datum.slice(0,7);maandM[mo]=(maandM[mo]||0)+e.uren;});
@@ -763,69 +838,30 @@ function drawKlantPie(filtered){
   if(!canvas||!legend)return;
   const ctx=canvas.getContext('2d');
   ctx.clearRect(0,0,160,160);
-
-  // Build data: uren per klant (only active klanten)
   const klantT={};
   filtered.forEach(e=>{if(e.klantId)klantT[e.klantId]=(klantT[e.klantId]||0)+e.uren;});
-
-  // Include entries without klant
   const noKlant=filtered.filter(e=>!e.klantId).reduce((s,e)=>s+e.uren,0);
   const data=[];
   klanten.forEach(k=>{if(klantT[k.id])data.push({label:k.naam,value:klantT[k.id]});});
   if(noKlant>0)data.push({label:'Geen klant',value:noKlant});
-
   const total=data.reduce((s,d)=>s+d.value,0);
-
-  if(!total){
-    ctx.font='bold 12px Nunito Sans,sans-serif';
-    ctx.fillStyle='#8888a0';
-    ctx.textAlign='center';
-    ctx.fillText('Geen data',80,85);
-    legend.innerHTML='';
-    return;
-  }
-
-  // Draw pie
+  if(!total){ctx.font='bold 12px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.textAlign='center';ctx.fillText('Geen data',80,85);legend.innerHTML='';return;}
   let angle=-Math.PI/2;
   const cx=80,cy=80,r=70;
   data.forEach((d,i)=>{
     const slice=(d.value/total)*2*Math.PI;
-    ctx.beginPath();
-    ctx.moveTo(cx,cy);
-    ctx.arc(cx,cy,r,angle,angle+slice);
-    ctx.closePath();
-    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];
-    ctx.fill();
-    ctx.strokeStyle='white';
-    ctx.lineWidth=2;
-    ctx.stroke();
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];ctx.fill();
+    ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
     angle+=slice;
   });
-
-  // Center hole (donut)
-  ctx.beginPath();
-  ctx.arc(cx,cy,40,0,2*Math.PI);
-  ctx.fillStyle='white';
-  ctx.fill();
-
-  // Center text
-  ctx.font='bold 14px Nunito Sans,sans-serif';
-  ctx.fillStyle='#2563EB';
-  ctx.textAlign='center';
+  ctx.beginPath();ctx.arc(cx,cy,40,0,2*Math.PI);ctx.fillStyle='white';ctx.fill();
+  ctx.font='bold 14px Nunito Sans,sans-serif';ctx.fillStyle='#2563EB';ctx.textAlign='center';
   ctx.fillText(total.toFixed(0)+'u',cx,cy-4);
-  ctx.font='11px Nunito Sans,sans-serif';
-  ctx.fillStyle='#8888a0';
-  ctx.fillText('totaal',cx,cy+12);
-
-  // Legend
+  ctx.font='11px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.fillText('totaal',cx,cy+12);
   legend.innerHTML=data.map((d,i)=>{
     const pct=((d.value/total)*100).toFixed(0);
-    return`<div class="pie-legend-item">
-      <div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div>
-      <span>${d.label}</span>
-      <span class="pie-legend-pct">${pct}%</span>
-      <span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span>
-    </div>`;
+    return`<div class="pie-legend-item"><div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div><span>${d.label}</span><span class="pie-legend-pct">${pct}%</span><span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span></div>`;
   }).join('');
 }
 
@@ -874,8 +910,7 @@ function renderOverzicht(){
   const tot=document.getElementById('ov-tot')?.value||'';
   let filtered=entries.filter(e=>{
     return(!checked.length||checked.includes(e.projectId))&&
-      (!maand||e.datum.startsWith(maand))&&
-      (!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
       (!med||e.userId==med)&&(!klant||e.klantId==klant);
   }).sort((a,b)=>b.datum.localeCompare(a.datum));
   const bar=document.getElementById('ov-totaal-bar');
@@ -909,7 +944,6 @@ function clearOvFilters(){deselectAllProjects();['ov-maand','ov-van','ov-tot','o
 // PROJECTEN & KLANTEN
 // ══════════════════════════
 function renderProjecten(){
-  // Klant cards
   const cc=document.getElementById('klantCards');
   if(cc)cc.innerHTML=klanten.length
     ?klanten.map(k=>`
@@ -920,7 +954,6 @@ function renderProjecten(){
       </div>`).join('')
     :'<span style="font-size:13px;color:var(--gray-400);">Nog geen klanten. Klik op + Klant toevoegen.</span>';
 
-  // Projects table
   const klantF=document.getElementById('proj-klant-filter')?.value||'';
   const statusF=document.getElementById('proj-status-filter')?.value||'all';
   let list=projects.filter(p=>(!klantF||p.klantId==klantF)&&(statusF==='all'||(statusF==='active'&&p.actief)||(statusF==='inactive'&&!p.actief)));
@@ -943,14 +976,9 @@ function renderProjecten(){
     <tr id="proj-edit-${p.id}" style="display:none;background:var(--gray-50);">
       <td colspan="6" style="padding:10px 14px;">
         <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <label>Naam</label><input type="text" id="edit-naam-${p.id}" value="${p.naam}" style="max-width:200px;">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <label>Code</label><input type="text" id="edit-code-${p.id}" value="${p.code}" style="max-width:120px;">
-          </div>
-          <div style="display:flex;flex-direction:column;gap:4px;">
-            <label>Klant</label>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Naam</label><input type="text" id="edit-naam-${p.id}" value="${p.naam}" style="max-width:200px;"></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Code</label><input type="text" id="edit-code-${p.id}" value="${p.code}" style="max-width:120px;"></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Klant</label>
             <select id="edit-klant-${p.id}" style="max-width:200px;">
               <option value="">Geen klant</option>
               ${klanten.map(k=>`<option value="${k.id}" ${k.id===p.klantId?'selected':''}>${k.naam}</option>`).join('')}
@@ -975,7 +1003,7 @@ function saveEdit(id){
   p.naam=n;if(c)p.code=c;p.klantId=kv?parseInt(kv):null;
   projects.sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
   refreshAllDropdowns();save();renderProjecten();
-  showToast(`Project bijgewerkt`,'success');
+  showToast('Project bijgewerkt','success');
 }
 
 function toggleProject(id){const p=projects.find(x=>x.id===id);if(p){p.actief=!p.actief;refreshAllDropdowns();save();renderProjecten();showToast(`${p.naam} is nu ${p.actief?'actief':'inactief'}`,'success');}}
@@ -996,7 +1024,6 @@ function addProject(){
   showToast(`"${naam}" toegevoegd`,'success');
 }
 
-// Klanten
 function showAddKlant(){document.getElementById('addKlantForm').style.display='block';document.getElementById('nk-naam').focus();}
 function hideAddKlant(){document.getElementById('addKlantForm').style.display='none';document.getElementById('nk-naam').value='';}
 function addKlant(){
@@ -1027,8 +1054,7 @@ function getFilteredForExport(){
   const tot=document.getElementById('ov-tot')?.value||'';
   return entries.filter(e=>{
     return(!checked.length||checked.includes(e.projectId))&&
-      (!maand||e.datum.startsWith(maand))&&
-      (!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
       (!med||e.userId==med)&&(!klant||e.klantId==klant);
   }).sort((a,b)=>a.datum.localeCompare(b.datum));
 }
