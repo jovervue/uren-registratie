@@ -170,6 +170,17 @@
   .empty-icon{font-size:40px;margin-bottom:8px;}
   .empty h3{font-size:15px;font-weight:700;color:var(--gray-500);margin-bottom:4px;}
 
+  /* ── PROJECT COMBOBOX (zoekbare dropdown) ── */
+  .combo{position:relative;}
+  .combo-input{cursor:text;}
+  .combo-list{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--secondary);border-radius:8px;box-shadow:0 8px 24px rgba(30,58,138,.15);z-index:80;max-height:240px;overflow-y:auto;padding:4px 0;}
+  .combo-list.show{display:block;}
+  .combo-item{padding:8px 12px;font-size:13px;color:var(--gray-700);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .combo-item:hover,.combo-item.highlight{background:var(--secondary-light);color:var(--primary);}
+  .combo-item .ci-klant{font-size:11px;color:var(--gray-400);white-space:nowrap;}
+  .combo-empty{padding:10px 12px;font-size:12px;color:var(--gray-400);}
+  .combo-item.inactive{opacity:.5;}
+
   @media(max-width:768px){
     .stats-row,.two-col,.three-col{grid-template-columns:1fr 1fr;}
     .entry-row{grid-template-columns:1fr 36px;}
@@ -458,6 +469,38 @@ firebase.initializeApp(firebaseConfig);
 const db = firebase.firestore();
 const DOC = db.collection('data').doc('main');
 
+// ══════════════════════════
+// DATA (vooraan gedeclareerd zodat alle functies — ook
+// asynchrone callbacks zoals de Firestore-listener — deze
+// altijd al geïnitialiseerd aantreffen, ongeacht volgorde van uitvoering)
+// ══════════════════════════
+let users = [{id:1,naam:'Jo',initials:'JO'}];
+let klanten = [
+  {id:1, naam:'Tervuren',  actief:true},
+  {id:2, naam:'Unik-ID',   actief:true},
+  {id:3, naam:'Vilvoorde', actief:true},
+];
+let projects = [
+  {id:1, naam:'WZC_GBS',                    code:'WZC_GBS',  klantId:1, actief:true},
+  {id:2, naam:'WZC_BMS',                    code:'WZC_BMS',  klantId:1, actief:true},
+  {id:3, naam:'WZC_HVAC',                   code:'WZC_HVAC', klantId:1, actief:true},
+  {id:4, naam:'Panquin Site',               code:'PQ_SITE',  klantId:1, actief:true},
+  {id:5, naam:'Panquin Museum',             code:'PQ_MUS',   klantId:1, actief:true},
+  {id:6, naam:'Polygoon HS cabine',         code:'POL_HS',   klantId:1, actief:true},
+  {id:7, naam:'Polygoon',                   code:'POL',      klantId:1, actief:true},
+  {id:8, naam:'P Stroykens overnachtingen', code:'PS_OV',    klantId:1, actief:true},
+  {id:9, naam:'GBST Stookplaatsen',         code:'GBST_SP',  klantId:1, actief:true},
+  {id:10,naam:'GBSV_BMS',                   code:'GBSV_BMS', klantId:1, actief:true},
+  {id:11,naam:'Beheer',                     code:'BEHEER',   klantId:1, actief:true},
+  {id:12,naam:'Raamcontracten',             code:'RAAM',     klantId:1, actief:true},
+  {id:13,naam:'WEB Airco',                  code:'WEB_AC',   klantId:1, actief:true},
+  {id:14,naam:'Diverse',                    code:'DIV',      klantId:1, actief:true},
+];
+let entries = [];
+let nextId=1, nextUserId=2, nextKlantId=4, nextProjId=15;
+let currentUserId=null, lastUserId=null;
+const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
+
 let fbListenerActive = false;
 
 function showSyncBar(msg, type='') {
@@ -543,33 +586,6 @@ function startFbListener() {
     console.error('Firestore listener error:', err);
   });
 }
-
-// ══════════════════════════
-// DATA
-// ══════════════════════════
-let users = [{id:1,naam:'Jo',initials:'JO'}];
-let klanten = [];
-let projects = [
-  {id:1, naam:'WZC_GBS',                    code:'WZC_GBS',  klantId:null, actief:true},
-  {id:2, naam:'WZC_BMS',                    code:'WZC_BMS',  klantId:null, actief:true},
-  {id:3, naam:'WZC_HVAC',                   code:'WZC_HVAC', klantId:null, actief:true},
-  {id:4, naam:'Panquin Site',               code:'PQ_SITE',  klantId:null, actief:true},
-  {id:5, naam:'Panquin Museum',             code:'PQ_MUS',   klantId:null, actief:true},
-  {id:6, naam:'Polygoon HS cabine',         code:'POL_HS',   klantId:null, actief:true},
-  {id:7, naam:'Polygoon',                   code:'POL',      klantId:null, actief:true},
-  {id:8, naam:'P Stroykens overnachtingen', code:'PS_OV',    klantId:null, actief:true},
-  {id:9, naam:'GBST Stookplaatsen',         code:'GBST_SP',  klantId:null, actief:true},
-  {id:10,naam:'GBSV_BMS',                   code:'GBSV_BMS', klantId:null, actief:true},
-  {id:11,naam:'Beheer',                     code:'BEHEER',   klantId:null, actief:true},
-  {id:12,naam:'Raamcontracten',             code:'RAAM',     klantId:null, actief:true},
-  {id:13,naam:'WEB Airco',                  code:'WEB_AC',   klantId:null, actief:true},
-  {id:14,naam:'Diverse',                    code:'DIV',      klantId:null, actief:true},
-];
-let entries = [];
-let nextId=1, nextUserId=2, nextKlantId=1, nextProjId=15;
-let currentUserId=null, lastUserId=null;
-
-const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
 
 // ══════════════════════════
 // PERSIST (localStorage als backup)
@@ -687,18 +703,105 @@ function projectOptions(selectedId){
   }).join('');
 }
 
+// ── ZOEKBARE PROJECT-COMBOBOX ──
+function comboMatches(term){
+  const t=(term||'').trim().toLowerCase();
+  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  if(!t) return sorted;
+  return sorted.filter(p=>p.naam.toLowerCase().includes(t)||(p.code||'').toLowerCase().includes(t));
+}
+function comboLabel(p){
+  const k=klanten.find(x=>x.id===p.klantId);
+  return {naam:p.naam,klant:k?k.naam:''};
+}
+function renderComboList(rowId){
+  const row=document.getElementById(rowId);
+  if(!row)return;
+  const search=row.querySelector('.row-project-search');
+  const list=row.querySelector('.combo-list');
+  const matches=comboMatches(search.value).slice(0,40);
+  if(!matches.length){
+    list.innerHTML='<div class="combo-empty">Geen projecten gevonden</div>';
+  } else {
+    list.innerHTML=matches.map((p,i)=>{
+      const lbl=comboLabel(p);
+      return `<div class="combo-item${!p.actief?' inactive':''}${i===0?' highlight':''}" data-id="${p.id}" onmousedown="selectComboItem('${rowId}',${p.id})">
+        <span>${lbl.naam}${!p.actief?' (inactief)':''}</span>
+        ${lbl.klant?`<span class="ci-klant">${lbl.klant}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+  list.classList.add('show');
+}
+function openComboList(rowId){ renderComboList(rowId); }
+function closeComboList(rowId){
+  const row=document.getElementById(rowId);
+  if(!row)return;
+  row.querySelector('.combo-list').classList.remove('show');
+}
+function filterComboList(rowId){
+  const row=document.getElementById(rowId);
+  row.querySelector('.row-project').value=''; // selectie ongeldig zodra er getypt wordt
+  row.querySelector('.row-project-search').classList.remove('error');
+  renderComboList(rowId);
+}
+function selectComboItem(rowId,projId){
+  const row=document.getElementById(rowId);
+  const p=projects.find(x=>x.id===projId);
+  if(!row||!p)return;
+  row.querySelector('.row-project').value=p.id;
+  row.querySelector('.row-project-search').value=p.naam;
+  row.querySelector('.row-project-search').classList.remove('error');
+  closeComboList(rowId);
+  recalcTotal();
+}
+function comboKeydown(e,rowId){
+  const row=document.getElementById(rowId);
+  const list=row.querySelector('.combo-list');
+  if(!list.classList.contains('show') && (e.key==='ArrowDown'||e.key==='Enter')){
+    renderComboList(rowId); return;
+  }
+  const items=[...list.querySelectorAll('.combo-item')];
+  if(!items.length)return;
+  let idx=items.findIndex(it=>it.classList.contains('highlight'));
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    idx=(idx+1)%items.length;
+    items.forEach(it=>it.classList.remove('highlight'));
+    items[idx].classList.add('highlight');
+    items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    idx=idx<=0?items.length-1:idx-1;
+    items.forEach(it=>it.classList.remove('highlight'));
+    items[idx].classList.add('highlight');
+    items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    const sel=items[idx>=0?idx:0];
+    if(sel) selectComboItem(rowId,parseInt(sel.dataset.id));
+  } else if(e.key==='Escape'){
+    closeComboList(rowId);
+  }
+}
+
 function addEntryRow(projId='',tekst='',uren=''){
   window.rowCount=(window.rowCount||0)+1;
   const id='row-'+window.rowCount;
   const div=document.createElement('div');
   div.className='entry-row'; div.id=id;
+  const initialProj=projId?projects.find(x=>x.id==projId):null;
   div.innerHTML=`
     <div>
       <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Project *</label>
-      <select class="row-project" onchange="recalcTotal()">
-        <option value="">— Kies project —</option>
-        ${projectOptions(projId)}
-      </select>
+      <div class="combo">
+        <input type="text" class="row-project-search combo-input" autocomplete="off"
+          placeholder="Typ om te zoeken…" value="${initialProj?initialProj.naam:''}"
+          oninput="filterComboList('${id}')" onfocus="openComboList('${id}')"
+          onkeydown="comboKeydown(event,'${id}')" onblur="closeComboList('${id}')">
+        <input type="hidden" class="row-project" value="${projId||''}">
+        <div class="combo-list"></div>
+      </div>
     </div>
     <div>
       <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Omschrijving</label>
@@ -747,8 +850,8 @@ function saveEntry(){
     const projId=row.querySelector('.row-project').value;
     const tekst=row.querySelector('.row-tekst').value.trim();
     const uren=parseFloat(row.querySelector('.row-uren').value)||0;
-    if(!projId){row.querySelector('.row-project').classList.add('error');hasError=true;}
-    else row.querySelector('.row-project').classList.remove('error');
+    if(!projId){row.querySelector('.row-project-search').classList.add('error');hasError=true;}
+    else row.querySelector('.row-project-search').classList.remove('error');
     if(uren<0)hasError=true;
     if(uren>0&&projId){
       const p=projects.find(x=>x.id==projId);
@@ -1038,7 +1141,6 @@ function toggleKlant(id){const k=klanten.find(x=>x.id===id);if(k){k.actief=!k.ac
 function deleteKlant(id){const k=klanten.find(x=>x.id===id);if(!confirm(`"${k.naam}" verwijderen?`))return;klanten=klanten.filter(x=>x.id!==id);projects.forEach(p=>{if(p.klantId===id)p.klantId=null;});save();populateAllFilters();renderProjecten();updateNavClient();showToast('Klant verwijderd','warn');}
 
 function refreshAllDropdowns(){
-  document.querySelectorAll('.row-project').forEach(sel=>{const cur=sel.value;sel.innerHTML=`<option value="">— Kies project —</option>${projectOptions(cur)}`;});
   buildProjCheckboxes();
 }
 
