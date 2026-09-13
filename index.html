@@ -101,7 +101,7 @@
   textarea{resize:vertical;min-height:52px;}
 
   .entry-rows{display:flex;flex-direction:column;gap:10px;}
-  .entry-row{display:grid;grid-template-columns:220px 1fr 90px 36px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+  .entry-row{display:grid;grid-template-columns:200px 190px 1fr 84px 34px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
   .entry-row select,.entry-row textarea,.entry-row input{font-size:13px;padding:7px 10px;}
   .entry-row textarea{min-height:52px;}
   .entry-row-remove{background:var(--red-light);border:none;color:var(--red);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:background .15s;}
@@ -141,7 +141,36 @@
   .filter-label{font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
 
   .chart-bars{display:flex;align-items:flex-end;gap:8px;padding:0 4px;margin-top:8px;}
-  .chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;}
+  .chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:120px;}
+  .chart-col.clickable{cursor:pointer;border-radius:6px;transition:background .15s;}
+  .chart-col.clickable:hover{background:var(--secondary-light);}
+  .chart-col.clickable:hover .chart-bar{filter:brightness(1.12);}
+  .chart-col.actief .chart-bar{outline:2px solid var(--accent);outline-offset:1px;}
+  .hint{font-weight:700;letter-spacing:0;text-transform:none;color:var(--gray-300);font-size:10px;}
+  .stat-card.clickable{cursor:pointer;transition:transform .12s,box-shadow .15s;}
+  .stat-card.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 18px rgba(30,58,138,.14);}
+  .pie-legend-item.clickable{cursor:pointer;padding:3px 6px;border-radius:6px;transition:background .15s;}
+  .pie-legend-item.clickable:hover{background:var(--secondary-light);}
+  .det-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .det-title{font-size:16px;font-weight:900;color:var(--dark);}
+  .det-sub{font-size:12px;color:var(--gray-400);margin-top:2px;}
+  .det-kpis{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:16px;}
+  .det-kpi{min-width:92px;}
+  .det-kpi-label{font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);}
+  .det-kpi-val{font-size:20px;font-weight:900;color:var(--primary);line-height:1.2;}
+  .det-sect{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);margin:14px 0 8px;}
+  .det-rows{display:flex;flex-direction:column;gap:6px;}
+  .det-row{display:grid;grid-template-columns:minmax(120px,1.4fr) 1fr 66px;gap:10px;align-items:center;font-size:12.5px;color:var(--gray-700);}
+  .det-row .det-bar{height:8px;background:var(--gray-100);border-radius:6px;overflow:hidden;}
+  .det-row .det-bar>div{height:100%;background:linear-gradient(90deg,var(--secondary),var(--primary));}
+  .det-row .det-uren{text-align:right;font-weight:800;color:var(--secondary);white-space:nowrap;}
+  .det-list{display:flex;flex-direction:column;gap:4px;font-size:12.5px;}
+  .det-li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--gray-100);}
+  .det-li:last-child{border-bottom:none;}
+  .det-li .dd{font-weight:700;color:var(--dark);white-space:nowrap;min-width:76px;}
+  .det-li .dt{color:var(--gray-500);flex:1;}
+  .det-li .du{font-weight:800;color:var(--secondary);white-space:nowrap;}
+  @media(max-width:768px){ .det-row{grid-template-columns:1fr 58px;} .det-row .det-bar{display:none;} }
   .chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--secondary),var(--primary));min-height:4px;}
   .chart-bar.dark{background:linear-gradient(180deg,var(--primary),#162d6e);}
   .chart-label{font-size:10px;color:var(--gray-400);font-weight:600;text-align:center;}
@@ -181,9 +210,25 @@
   .combo-empty{padding:10px 12px;font-size:12px;color:var(--gray-400);}
   .combo-item.inactive{opacity:.5;}
 
+  /* ── OMSCHRIJVING-COMBOBOX (type-lijst, beheerbaar) ── */
+  .oc-list{right:auto;min-width:265px;max-height:290px;}
+  .tc-list{max-height:260px;}
+  .tc-list .combo-item{line-height:1.35;align-items:flex-start;}
+  .tc-list .combo-item span:first-child{display:block;}
+  .oc-group{padding:9px 12px 3px;font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);background:white;}
+  .oc-list .combo-item{line-height:1.3;}
+  .combo-item .ci-del{opacity:0;font-size:12px;line-height:1;color:var(--gray-400);padding:2px 5px;border-radius:4px;flex-shrink:0;}
+  .combo-item:hover .ci-del,.combo-item.highlight .ci-del{opacity:1;}
+  .combo-item .ci-del:hover{background:var(--red-light);color:var(--red);}
+  .combo-foot{border-top:1px solid var(--gray-100);margin-top:4px;padding:9px 12px;font-size:12px;font-weight:800;color:var(--secondary);cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .combo-foot:hover{background:var(--secondary-light);}
+  .row-tekst{line-height:1.4;}
+
   @media(max-width:768px){
     .stats-row,.two-col,.three-col{grid-template-columns:1fr 1fr;}
-    .entry-row{grid-template-columns:1fr 36px;}
+    .entry-row{grid-template-columns:1fr 34px;}
+    .entry-row>div{grid-column:1;}
+    .entry-row-remove{grid-column:2;grid-row:1;}
   }
 </style>
 </head>
@@ -265,7 +310,7 @@
       <div id="dupWarning" class="dup-warning">⚠️ <strong>Let op:</strong> Er bestaat al een registratie voor deze datum. Nieuwe rijen worden toegevoegd aan de bestaande invoer.</div>
     </div>
     <div class="entry-rows" id="entryRows"></div>
-    <button class="add-row-btn" onclick="addEntryRow()">+ Project toevoegen</button>
+    <button class="add-row-btn" onclick="addEntryRow('','','','',true)">+ Project toevoegen</button>
     <div class="total-bar" id="totalBar">
       <span>Totaal vandaag</span>
       <strong id="totalHours">0.00 u</strong>
@@ -294,36 +339,56 @@
     <span class="filter-label">Klant:</span>
     <select id="dash-klant" onchange="renderDashboard()"><option value="">Alle</option></select>
     <span class="filter-label">Periode:</span>
-    <input type="month" id="dash-maand" onchange="renderDashboard()">
-    <button class="btn btn-ghost btn-sm" onclick="clearDashFilter()">✕</button>
+    <select id="dash-periode" onchange="periodeGewijzigd()" style="max-width:180px;">
+      <option value="maand">Deze maand</option>
+      <option value="vorige">Vorige maand</option>
+      <option value="laatste3">Laatste 3 maanden</option>
+      <option value="laatste12">Laatste 12 maanden</option>
+      <option value="kwartaal">Dit kwartaal</option>
+      <option value="jaar">Dit jaar</option>
+      <option value="vorigjaar">Vorig jaar</option>
+      <option value="maandkeuze">Specifieke maand…</option>
+      <option value="aangepast">Van – tot…</option>
+      <option value="alles">Alles</option>
+    </select>
+    <input type="month" id="dash-maand" onchange="renderDashboard()" style="max-width:160px;display:none;">
+    <span class="filter-label" id="dash-van-lbl" style="display:none;">Van</span>
+    <input type="date" id="dash-van" onchange="renderDashboard()" style="max-width:155px;display:none;">
+    <span class="filter-label" id="dash-tot-lbl" style="display:none;">Tot</span>
+    <input type="date" id="dash-tot" onchange="renderDashboard()" style="max-width:155px;display:none;">
+    <button class="btn btn-ghost btn-sm" onclick="clearDashFilter()" title="Filters wissen">✕</button>
+    <span id="dash-periode-info" style="font-size:11px;font-weight:700;color:var(--gray-400);"></span>
   </div>
 
   <div class="stats-row" id="dashStats"></div>
 
-  <div class="two-col mb-20">
-    <div class="card">
-      <div class="card-title">Uren per project</div>
-      <div class="chart-bars" id="projectChart" style="height:120px;"></div>
-    </div>
-    <div class="card">
-      <div class="card-title">Uren per klant</div>
-      <div class="pie-wrap" id="klantPieWrap" style="min-height:160px;padding:8px 0;">
-        <canvas id="klantPie" width="160" height="160" style="flex-shrink:0;"></canvas>
-        <div class="pie-legend" id="klantPieLegend"></div>
-      </div>
+  <div class="card mb-20" id="dashDetail" style="display:none;"></div>
+
+  <div class="card mb-20">
+    <div class="card-title">Uren per klant <span class="hint">— klik op een klant om te filteren</span></div>
+    <div class="pie-wrap" id="klantPieWrap" style="min-height:160px;padding:8px 0;">
+      <canvas id="klantPie" width="160" height="160" style="flex-shrink:0;cursor:pointer;" onclick="klantPieClick(event)"></canvas>
+      <div class="pie-legend" id="klantPieLegend"></div>
     </div>
   </div>
 
   <div class="two-col mb-20">
     <div class="card">
-      <div class="card-title">Weekoverzicht</div>
-      <div class="chart-bars" id="weekChart" style="height:120px;"></div>
+      <div class="card-title">Weekoverzicht (laatste 3 weken) <span class="hint">— klik op een week</span></div>
+      <div class="chart-bars" id="weekChart" style="height:150px;"></div>
     </div>
     <div class="card">
-      <div class="card-title">Uren per maand</div>
-      <div class="chart-bars" id="maandChart" style="height:120px;"></div>
+      <div class="card-title">Uren per maand <span class="hint">— klik op een maand</span></div>
+      <div class="chart-bars" id="maandChart" style="height:150px;"></div>
     </div>
   </div>
+
+  <div class="card mb-20">
+    <div class="card-title"><span id="topProjTitle">Top 10 projecten — uren in geselecteerde periode</span> <span class="hint">— klik op een project</span></div>
+    <div class="chart-bars" id="topProjChart" style="height:155px;"></div>
+  </div>
+
+</div>
 </div>
 
 <!-- PAGE: OVERZICHT -->
@@ -370,7 +435,7 @@
     </div>
     <div class="table-wrap">
       <table>
-        <thead><tr><th>Datum</th><th>Medewerker</th><th>Klant</th><th>Project</th><th>Omschrijving</th><th>Uren</th><th></th></tr></thead>
+        <thead><tr><th>Datum</th><th>Medewerker</th><th>Klant</th><th>Project</th><th>Omschrijving</th><th>Toelichting</th><th>Uren</th><th></th></tr></thead>
         <tbody id="overzichtTable"></tbody>
       </table>
     </div>
@@ -497,7 +562,31 @@ let projects = [
   {id:14,naam:'Diverse',                    code:'DIV',      klantId:1, actief:true},
 ];
 let entries = [];
-let nextId=1, nextUserId=2, nextKlantId=4, nextProjId=15;
+
+// Standaardlijst omschrijvingen (type werkzaamheid) – aanvulbaar via de dropdown
+const DEFAULT_OMSCHRIJVINGEN = [
+  {id:1,  tekst:'E-mail',                    groep:'Contact & overleg'},
+  {id:2,  tekst:'Telefoon',                  groep:'Contact & overleg'},
+  {id:3,  tekst:'Intern overleg',            groep:'Contact & overleg'},
+  {id:4,  tekst:'Extern overleg',            groep:'Contact & overleg'},
+  {id:5,  tekst:'Werfvergadering',           groep:'Contact & overleg'},
+  {id:6,  tekst:'Werfrondgang',              groep:'Contact & overleg'},
+  {id:7,  tekst:'Projectopvolging',          groep:'Taken'},
+  {id:8,  tekst:'Planning',                  groep:'Taken'},
+  {id:9,  tekst:'Administratie',             groep:'Taken'},
+  {id:10, tekst:'Rapportage',                groep:'Taken'},
+  {id:11, tekst:'Bestek opstellen/aanpassen',groep:'Taken'},
+  {id:12, tekst:'Budgetopvolging',           groep:'Taken'},
+  {id:13, tekst:'Facturatie',                groep:'Taken'},
+  {id:14, tekst:'Meer-/minderwerken',        groep:'Taken'},
+  {id:15, tekst:'Nazicht',                   groep:'Taken'},
+];
+let omschrijvingen = DEFAULT_OMSCHRIJVINGEN.map(o=>({...o}));
+
+// Eerder gebruikte toelichtingen – wordt automatisch aangevuld bij het opslaan
+let toelichtingen = [];
+
+let nextId=1, nextUserId=2, nextKlantId=4, nextProjId=15, nextOmschrId=16, nextToelId=1;
 let currentUserId=null, lastUserId=null;
 const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
 
@@ -515,9 +604,9 @@ function showSyncBar(msg, type='') {
 async function fbSave() {
   try {
     await DOC.set({
-      users, klanten, projects, entries,
+      users, klanten, projects, entries, omschrijvingen, toelichtingen,
       lastUserId: lastUserId || null,
-      ids: { nextId, nextUserId, nextKlantId, nextProjId },
+      ids: { nextId, nextUserId, nextKlantId, nextProjId, nextOmschrId, nextToelId },
       updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     showSyncBar('☁ Opgeslagen in cloud', 'ok');
@@ -537,12 +626,16 @@ async function fbLoad() {
       if (d.klanten)  klanten  = d.klanten;
       if (d.projects) projects = d.projects;
       if (d.entries)  entries  = d.entries;
+      if (Array.isArray(d.omschrijvingen) && d.omschrijvingen.length) omschrijvingen = d.omschrijvingen;
+      if (Array.isArray(d.toelichtingen)) toelichtingen = d.toelichtingen;
       if (d.lastUserId !== undefined) lastUserId = d.lastUserId;
       if (d.ids) {
-        nextId      = d.ids.nextId      || 1;
-        nextUserId  = d.ids.nextUserId  || 2;
-        nextKlantId = d.ids.nextKlantId || 1;
-        nextProjId  = d.ids.nextProjId  || 15;
+        nextId       = d.ids.nextId      || 1;
+        nextUserId   = d.ids.nextUserId  || 2;
+        nextKlantId  = d.ids.nextKlantId || 1;
+        nextProjId   = d.ids.nextProjId  || 15;
+        nextOmschrId = d.ids.nextOmschrId || (Math.max(0,...omschrijvingen.map(o=>o.id||0))+1);
+        nextToelId   = d.ids.nextToelId   || (Math.max(0,...toelichtingen.map(t=>t.id||0))+1);
       }
       showSyncBar('✓ Data geladen van cloud', 'ok');
     } else {
@@ -570,11 +663,15 @@ function startFbListener() {
     if (d.klanten)  klanten  = d.klanten;
     if (d.projects) projects = d.projects;
     if (d.entries)  entries  = d.entries;
+    if (Array.isArray(d.omschrijvingen) && d.omschrijvingen.length) omschrijvingen = d.omschrijvingen;
+    if (Array.isArray(d.toelichtingen)) toelichtingen = d.toelichtingen;
     if (d.ids) {
-      nextId      = d.ids.nextId      || nextId;
-      nextUserId  = d.ids.nextUserId  || nextUserId;
-      nextKlantId = d.ids.nextKlantId || nextKlantId;
-      nextProjId  = d.ids.nextProjId  || nextProjId;
+      nextId       = d.ids.nextId       || nextId;
+      nextUserId   = d.ids.nextUserId   || nextUserId;
+      nextKlantId  = d.ids.nextKlantId  || nextKlantId;
+      nextProjId   = d.ids.nextProjId   || nextProjId;
+      nextOmschrId = d.ids.nextOmschrId || nextOmschrId;
+      nextToelId   = d.ids.nextToelId   || nextToelId;
     }
     // Herrender actieve pagina
     populateAllFilters();
@@ -595,8 +692,10 @@ function save(){
   localStorage.setItem('cv_klanten',JSON.stringify(klanten));
   localStorage.setItem('cv_projects',JSON.stringify(projects));
   localStorage.setItem('cv_entries',JSON.stringify(entries));
+  localStorage.setItem('cv_omschrijvingen',JSON.stringify(omschrijvingen));
+  localStorage.setItem('cv_toelichtingen',JSON.stringify(toelichtingen));
   localStorage.setItem('cv_lastUser',lastUserId||'');
-  localStorage.setItem('cv_ids',JSON.stringify({nextId,nextUserId,nextKlantId,nextProjId}));
+  localStorage.setItem('cv_ids',JSON.stringify({nextId,nextUserId,nextKlantId,nextProjId,nextOmschrId,nextToelId}));
   // Ook naar Firebase sturen
   fbSave();
 }
@@ -604,13 +703,17 @@ function load(){
   try{
     const u=localStorage.getItem('cv_users'),k=localStorage.getItem('cv_klanten'),
           p=localStorage.getItem('cv_projects'),e=localStorage.getItem('cv_entries'),
+          om=localStorage.getItem('cv_omschrijvingen'),
+          tl=localStorage.getItem('cv_toelichtingen'),
           ids=localStorage.getItem('cv_ids');
     if(u)users=JSON.parse(u);
     if(k)klanten=JSON.parse(k);
     if(p)projects=JSON.parse(p);
     if(e)entries=JSON.parse(e);
+    if(om){const arr=JSON.parse(om);if(Array.isArray(arr)&&arr.length)omschrijvingen=arr;}
+    if(tl){const arr=JSON.parse(tl);if(Array.isArray(arr))toelichtingen=arr;}
     lastUserId=parseInt(localStorage.getItem('cv_lastUser'))||null;
-    if(ids){const o=JSON.parse(ids);nextId=o.nextId||1;nextUserId=o.nextUserId||2;nextKlantId=o.nextKlantId||1;nextProjId=o.nextProjId||15;}
+    if(ids){const o=JSON.parse(ids);nextId=o.nextId||1;nextUserId=o.nextUserId||2;nextKlantId=o.nextKlantId||1;nextProjId=o.nextProjId||15;nextOmschrId=o.nextOmschrId||(Math.max(0,...omschrijvingen.map(x=>x.id||0))+1);nextToelId=o.nextToelId||(Math.max(0,...toelichtingen.map(x=>x.id||0))+1);}
   }catch(err){}
 }
 
@@ -628,7 +731,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   const now=new Date();
   const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
-  ['dash-maand','ov-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
+  ['ov-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
+  const dp=document.getElementById('dash-periode');if(dp)dp.value='maand';
 });
 
 // ══════════════════════════
@@ -785,7 +889,162 @@ function comboKeydown(e,rowId){
   }
 }
 
-function addEntryRow(projId='',tekst='',uren=''){
+// ── TOELICHTING-COMBOBOX (eerder gebruikte toelichtingen) ──
+const MAX_TOELICHTINGEN=300;
+function toelichtingToevoegen(tekst){
+  const t=(tekst||'').trim();
+  if(!t||t.length<2)return false;
+  if(toelichtingen.some(x=>x.tekst.toLowerCase()===t.toLowerCase()))return false;
+  toelichtingen.push({id:nextToelId++,tekst});
+  if(toelichtingen.length>MAX_TOELICHTINGEN)toelichtingen=toelichtingen.slice(-MAX_TOELICHTINGEN);
+  return true;
+}
+function tcRender(rowId){
+  const row=document.getElementById(rowId); if(!row)return;
+  const ta=row.querySelector('.row-tekst');
+  const list=row.querySelector('.tc-list');
+  const term=(ta.value||'').trim().toLowerCase();
+  const alle=toelichtingen.slice().reverse(); // recentste eerst
+  const matches=(term?alle.filter(t=>t.tekst.toLowerCase().includes(term)):alle).slice(0,40);
+  let html='';
+  if(matches.length){
+    html+=matches.map(t=>`<div class="combo-item" data-id="${t.id}" onmousedown="tcSelect('${rowId}',${t.id})">
+      <span>${escAttr(t.tekst)}</span>
+      <span class="ci-del" title="Uit lijst verwijderen" onmousedown="tcDelete(event,'${rowId}',${t.id})">✕</span>
+    </div>`).join('');
+  } else {
+    html+=`<div class="combo-empty">${toelichtingen.length?'Geen eerdere toelichting gevonden':'Nog geen bewaarde toelichtingen — wat je opslaat komt hier automatisch in'}</div>`;
+  }
+  const huidig=(ta.value||'').trim();
+  const bestaat=huidig&&toelichtingen.some(x=>x.tekst.toLowerCase()===huidig.toLowerCase());
+  if(huidig&&!bestaat)html+=`<div class="combo-foot" onmousedown="tcAddNew(event,'${rowId}')">＋ "${escAttr(huidig.slice(0,40))}${huidig.length>40?'…':''}" bewaren</div>`;
+  list.innerHTML=html;
+  list.classList.add('show');
+  list.scrollTop=0;
+}
+function tcOpen(rowId){tcRender(rowId);}
+function tcFilter(rowId){tcRender(rowId);}
+function tcClose(rowId){const row=document.getElementById(rowId);if(row)row.querySelector('.tc-list').classList.remove('show');}
+function tcSelect(rowId,id){
+  const row=document.getElementById(rowId);const t=toelichtingen.find(x=>x.id===id);
+  if(!row||!t)return;
+  const ta=row.querySelector('.row-tekst');
+  ta.value=t.tekst;
+  tcClose(rowId);
+  const uren=row.querySelector('.row-uren'); if(uren) setTimeout(()=>uren.focus(),0);
+}
+function tcAddNew(e,rowId){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const row=document.getElementById(rowId);if(!row)return;
+  const ta=row.querySelector('.row-tekst');
+  if(toelichtingToevoegen(ta.value)){save();showToast('Toelichting bewaard in de lijst','success');}
+  else showToast('Staat al in de lijst','warn');
+  tcClose(rowId);
+}
+function tcDelete(e,rowId,id){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const t=toelichtingen.find(x=>x.id===id);if(!t)return;
+  if(!confirm(`"${t.tekst}" uit de lijst verwijderen?\n\n(Reeds opgeslagen registraties blijven behouden.)`))return;
+  toelichtingen=toelichtingen.filter(x=>x.id!==id);
+  save();tcRender(rowId);
+  showToast('Uit de lijst verwijderd','warn');
+}
+function tcKeydown(e,rowId){
+  if(e.key==='Escape'){tcClose(rowId);return;}
+  if(e.key==='Tab'){tcClose(rowId);return;}
+}
+
+// ── OMSCHRIJVING-COMBOBOX (kiezen + lijst aanvullen) ──
+function escAttr(v){return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function omschrSorted(){
+  const groepOrder=g=>{const i=['Contact & overleg','Taken','Eigen'].indexOf(g||'Eigen');return i<0?99:i;};
+  return omschrijvingen.slice().sort((a,b)=>groepOrder(a.groep)-groepOrder(b.groep)||(a.id||0)-(b.id||0));
+}
+function ocMatches(term){
+  const t=(term||'').trim().toLowerCase();
+  const all=omschrSorted();
+  return t?all.filter(o=>o.tekst.toLowerCase().includes(t)):all;
+}
+function ocRender(rowId){
+  const row=document.getElementById(rowId); if(!row)return;
+  const search=row.querySelector('.row-type-search');
+  const list=row.querySelector('.oc-list');
+  const term=(search.value||'').trim();
+  const matches=ocMatches(term);
+  let html='',lastGroep=null,idx=0;
+  matches.forEach(o=>{
+    const g=o.groep||'Eigen';
+    if(g!==lastGroep){html+=`<div class="oc-group">${g}</div>`;lastGroep=g;}
+    html+=`<div class="combo-item${idx===0?' highlight':''}" data-id="${o.id}" data-tekst="${escAttr(o.tekst)}" onmousedown="ocSelect('${rowId}',${o.id})">
+      <span>${o.tekst}</span>
+      <span class="ci-del" title="Verwijderen uit lijst" onmousedown="ocDelete(event,'${rowId}',${o.id})">✕</span>
+    </div>`;
+    idx++;
+  });
+  if(!matches.length) html+='<div class="combo-empty">Niet in de lijst — je kan dit zo ook gebruiken</div>';
+  const exact=omschrijvingen.some(o=>o.tekst.toLowerCase()===term.toLowerCase());
+  if(term&&!exact) html+=`<div class="combo-foot" onmousedown="ocAddNew(event,'${rowId}')">＋ "${escAttr(term)}" aan lijst toevoegen</div>`;
+  else html+=`<div class="combo-foot" onmousedown="ocAddNew(event,'${rowId}')">＋ Nieuwe omschrijving toevoegen</div>`;
+  list.innerHTML=html;
+  list.classList.add('show');
+  list.scrollTop=0;
+}
+function ocOpen(rowId){ocRender(rowId);}
+function ocClose(rowId){const row=document.getElementById(rowId);if(row)row.querySelector('.oc-list').classList.remove('show');}
+function ocFilter(rowId){ocRender(rowId);}
+function ocSelect(rowId,id){
+  const row=document.getElementById(rowId);const o=omschrijvingen.find(x=>x.id===id);
+  if(!row||!o)return;
+  const search=row.querySelector('.row-type-search');
+  search.value=o.tekst;
+  ocClose(rowId);
+  const ta=row.querySelector('.row-tekst'); if(ta) setTimeout(()=>ta.focus(),0);
+}
+function ocAddNew(e,rowId){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const row=document.getElementById(rowId);if(!row)return;
+  const search=row.querySelector('.row-type-search');
+  const tekst=(search.value||'').trim();
+  if(!tekst){showToast('Typ eerst de nieuwe omschrijving in het veld','warn');search.focus();return;}
+  const bestaand=omschrijvingen.find(o=>o.tekst.toLowerCase()===tekst.toLowerCase());
+  if(bestaand){showToast('Staat al in de lijst','warn');ocSelect(rowId,bestaand.id);return;}
+  const nieuw={id:nextOmschrId++,tekst,groep:'Eigen'};
+  omschrijvingen.push(nieuw);
+  save();
+  ocSelect(rowId,nieuw.id);
+  showToast(`"${tekst}" toegevoegd aan de lijst`,'success');
+}
+function ocDelete(e,rowId,id){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const o=omschrijvingen.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`"${o.tekst}" uit de lijst verwijderen?\n\n(Reeds opgeslagen registraties blijven behouden.)`))return;
+  omschrijvingen=omschrijvingen.filter(x=>x.id!==id);
+  save();
+  ocRender(rowId);
+  showToast('Uit de lijst verwijderd','warn');
+}
+function ocKeydown(e,rowId){
+  const row=document.getElementById(rowId);
+  const list=row.querySelector('.oc-list');
+  if(!list.classList.contains('show')&&(e.key==='ArrowDown'||e.key==='Enter')){ocRender(rowId);return;}
+  const items=[...list.querySelectorAll('.combo-item')];
+  if(e.key==='Escape'){ocClose(rowId);return;}
+  if(!items.length)return;
+  let idx=items.findIndex(it=>it.classList.contains('highlight'));
+  if(e.key==='ArrowDown'){
+    e.preventDefault();idx=(idx+1)%items.length;
+    items.forEach(it=>it.classList.remove('highlight'));items[idx].classList.add('highlight');items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();idx=idx<=0?items.length-1:idx-1;
+    items.forEach(it=>it.classList.remove('highlight'));items[idx].classList.add('highlight');items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    const sel=items[idx>=0?idx:0];
+    if(sel)ocSelect(rowId,parseInt(sel.dataset.id));
+  }
+}
+
+function addEntryRow(projId='',type='',tekst='',uren='',focusProject=false){
   window.rowCount=(window.rowCount||0)+1;
   const id='row-'+window.rowCount;
   const div=document.createElement('div');
@@ -805,7 +1064,23 @@ function addEntryRow(projId='',tekst='',uren=''){
     </div>
     <div>
       <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Omschrijving</label>
-      <textarea class="row-tekst" placeholder="Wat heb je gedaan…">${tekst}</textarea>
+      <div class="combo">
+        <input type="text" class="row-type-search combo-input" autocomplete="off" spellcheck="false"
+          placeholder="Kies of typ…" value="${escAttr(type)}"
+          oninput="ocFilter('${id}')" onfocus="ocOpen('${id}')"
+          onkeydown="ocKeydown(event,'${id}')" onblur="ocClose('${id}')">
+        <div class="combo-list oc-list"></div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Toelichting</label>
+      <div class="combo">
+        <textarea class="row-tekst" spellcheck="true" lang="nl" autocorrect="on" autocapitalize="sentences"
+          placeholder="Extra uitleg — kies uit de lijst of typ…"
+          oninput="tcFilter('${id}')" onfocus="tcOpen('${id}')"
+          onkeydown="tcKeydown(event,'${id}')" onblur="tcClose('${id}')">${tekst}</textarea>
+        <div class="combo-list tc-list"></div>
+      </div>
     </div>
     <div>
       <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Uren *</label>
@@ -814,6 +1089,10 @@ function addEntryRow(projId='',tekst='',uren=''){
     <button class="entry-row-remove" onclick="removeRow('${id}')">✕</button>`;
   document.getElementById('entryRows').appendChild(div);
   recalcTotal();
+  if(focusProject){
+    const inp=div.querySelector('.row-project-search');
+    if(inp){ inp.focus(); inp.scrollIntoView({block:'center',behavior:'smooth'}); }
+  }
 }
 window.rowCount=0;
 
@@ -848,6 +1127,7 @@ function saveEntry(){
   let hasError=false,newEntries=[];
   rows.forEach(row=>{
     const projId=row.querySelector('.row-project').value;
+    const type=row.querySelector('.row-type-search').value.trim();
     const tekst=row.querySelector('.row-tekst').value.trim();
     const uren=parseFloat(row.querySelector('.row-uren').value)||0;
     if(!projId){row.querySelector('.row-project-search').classList.add('error');hasError=true;}
@@ -855,12 +1135,13 @@ function saveEntry(){
     if(uren<0)hasError=true;
     if(uren>0&&projId){
       const p=projects.find(x=>x.id==projId);
-      newEntries.push({id:nextId++,datum,userId:currentUserId,klantId:p?.klantId||null,projectId:parseInt(projId),omschrijving:tekst,uren});
+      newEntries.push({id:nextId++,datum,userId:currentUserId,klantId:p?.klantId||null,projectId:parseInt(projId),type,omschrijving:tekst,uren});
     }
   });
   if(hasError){showToast('Controleer de invoer','error');return;}
   if(!newEntries.length){showToast('⚠️ Vul minstens één project met uren in','warn');return;}
   entries.push(...newEntries);
+  newEntries.forEach(e=>toelichtingToevoegen(e.omschrijving));
   save(); clearForm();
   showToast('✓ Registratie opgeslagen','success');
   renderDashboard(); renderOverzicht();
@@ -870,7 +1151,7 @@ function clearForm(){
   const d=document.getElementById('inp-datum');if(d)d.value='';
   document.getElementById('dupWarning').style.display='none';
   document.getElementById('entryRows').innerHTML='';
-  window.rowCount=0; addEntryRow();
+  window.rowCount=0; addEntryRow('','','','',true);
 }
 
 // ══════════════════════════
@@ -894,34 +1175,32 @@ function populateAllFilters(){
 function renderDashboard(){
   const med=document.getElementById('dash-medewerker')?.value||'';
   const klant=document.getElementById('dash-klant')?.value||'';
-  const maand=document.getElementById('dash-maand')?.value||'';
+  const per=dashPeriode();
+  const info=document.getElementById('dash-periode-info');
   const filtered=entries.filter(e=>{
-    return(!med||e.userId==med)&&(!klant||e.klantId==klant)&&(!maand||e.datum.startsWith(maand));
+    return(!med||e.userId==med)&&(!klant||e.klantId==klant)&&
+      (!per.van||e.datum>=per.van)&&(!per.tot||e.datum<=per.tot);
   });
+  if(info)info.textContent=`${filtered.length} registraties · ${per.label}`;
+  window.dashFiltered=filtered;
   const total=filtered.reduce((s,e)=>s+e.uren,0);
   const days=new Set(filtered.map(e=>e.datum)).size;
   const gem=days>0?(total/days).toFixed(1):0;
   document.getElementById('dashStats').innerHTML=`
-    <div class="stat-card orange"><div class="stat-label">Totaal uren</div><div class="stat-value">${total.toFixed(1)}</div><div class="stat-sub">geselecteerde periode</div></div>
-    <div class="stat-card dark"><div class="stat-label">Gewerkte dagen</div><div class="stat-value">${days}</div><div class="stat-sub">dagen met registratie</div></div>
-    <div class="stat-card mid"><div class="stat-label">Gem. per dag</div><div class="stat-value">${gem}</div><div class="stat-sub">uur gemiddeld</div></div>`;
-
-  const projT={};
-  filtered.forEach(e=>{projT[e.projectId]=(projT[e.projectId]||0)+e.uren;});
-  const sortedP=Object.entries(projT).sort((a,b)=>b[1]-a[1]).slice(0,8);
-  const maxP=sortedP.length?Math.max(...sortedP.map(s=>s[1])):1;
-  document.getElementById('projectChart').innerHTML=sortedP.length
-    ?sortedP.map(([pid,u])=>{const p=projects.find(x=>x.id==pid);const h=Math.round((u/maxP)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar" style="height:${h}px;"></div><div class="chart-label" style="max-width:52px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${p?p.code:pid}</div></div>`;}).join('')
-    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+    <div class="stat-card orange clickable" onclick="openDashDetail('stat-uren')"><div class="stat-label">Totaal uren</div><div class="stat-value">${total.toFixed(1)}</div><div class="stat-sub">klik voor verdeling ›</div></div>
+    <div class="stat-card dark clickable" onclick="openDashDetail('stat-dagen')"><div class="stat-label">Gewerkte dagen</div><div class="stat-value">${days}</div><div class="stat-sub">klik voor de dagen ›</div></div>
+    <div class="stat-card mid clickable" onclick="openDashDetail('stat-gem')"><div class="stat-label">Gem. per dag</div><div class="stat-value">${gem}</div><div class="stat-sub">klik per weekdag ›</div></div>`;
 
   drawKlantPie(filtered);
+  renderProjPeriode(filtered,per.label);
+  renderDashDetail();
 
   const weekM={};
   filtered.forEach(e=>{const wk=getWeek(new Date(e.datum));weekM[wk]=(weekM[wk]||0)+e.uren;});
-  const weeks=Object.entries(weekM).sort((a,b)=>a[0]-b[0]).slice(-8);
+  const weeks=Object.entries(weekM).sort((a,b)=>a[0]-b[0]).slice(-3);
   const maxW=weeks.length?Math.max(...weeks.map(w=>w[1])):1;
   document.getElementById('weekChart').innerHTML=weeks.length
-    ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
+    ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);const act=dashDetail&&dashDetail.kind==='week'&&String(dashDetail.key)===String(wk);return`<div class="chart-col clickable${act?' actief':''}" onclick="openDashDetail('week',${wk})" title="Week ${wk} — ${u.toFixed(2)} u"><div class="chart-val">${u.toFixed(u%1?1:0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
     :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
 
   const maandAll=entries.filter(e=>(!med||e.userId==med)&&(!klant||e.klantId==klant));
@@ -931,8 +1210,42 @@ function renderDashboard(){
   const maxM=maanden.length?Math.max(...maanden.map(m=>m[1])):1;
   const mn=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
   document.getElementById('maandChart').innerHTML=maanden.length
-    ?maanden.map(([ym,u])=>{const[yr,mo]=ym.split('-');const h=Math.round((u/maxM)*100);const isSel=maand&&ym===maand;return`<div class="chart-col"><div class="chart-val">${u.toFixed(0)}</div><div class="chart-bar ${isSel?'dark':''}" style="height:${h}px;"></div><div class="chart-label">${mn[parseInt(mo)-1]} ${yr.slice(2)}</div></div>`;}).join('')
+    ?maanden.map(([ym,u])=>{const[yr,mo]=ym.split('-');const h=Math.round((u/maxM)*100);const isSel=!!(per.van&&per.tot&&ym>=per.van.slice(0,7)&&ym<=per.tot.slice(0,7));return`<div class="chart-col clickable${isSel?' actief':''}" onclick="kiesMaand('${ym}')" title="${mn[parseInt(mo)-1]} ${yr} — ${u.toFixed(2)} u — klik om te filteren"><div class="chart-val">${u.toFixed(u%1?1:0)}</div><div class="chart-bar ${isSel?'dark':''}" style="height:${h}px;"></div><div class="chart-label">${mn[parseInt(mo)-1]} ${yr.slice(2)}</div></div>`;}).join('')
     :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+}
+
+function renderTopProjChart(rijen,periodeLabel){
+  const box=document.getElementById('topProjChart');
+  const titel=document.getElementById('topProjTitle');
+  if(!box)return;
+  if(titel)titel.textContent=`Top 10 projecten — uren in ${periodeLabel||'de geselecteerde periode'}`;
+  const top=rijen.slice(0,10);
+  if(!top.length){box.innerHTML='<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';return;}
+  const max=top[0].uren||1;
+  box.innerHTML=top.map(r=>{
+    const h=Math.max(4,Math.round((r.uren/max)*100));
+    const act=dashDetail&&dashDetail.kind==='project'&&String(dashDetail.key)===String(r.id);
+    return`<div class="chart-col clickable${act?' actief':''}" onclick="openDashDetail('project',${r.id})" title="${escAttr(r.naam)} — ${r.uren.toFixed(2)} u (${r.klant}) — klik voor detail">
+      <div class="chart-val">${r.uren.toFixed(r.uren%1?1:0)}</div>
+      <div class="chart-bar" style="height:${h}px;"></div>
+      <div class="chart-label" style="max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${r.code}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProjPeriode(filtered,periodeLabel){
+  const agg={};
+  filtered.forEach(e=>{
+    if(!agg[e.projectId])agg[e.projectId]={uren:0,dagen:new Set()};
+    agg[e.projectId].uren+=e.uren;
+    agg[e.projectId].dagen.add(e.datum);
+  });
+  const rijen=Object.entries(agg).map(([pid,v])=>{
+    const p=projects.find(x=>x.id==pid);
+    const k=p?klanten.find(x=>x.id===p.klantId):null;
+    return {id:pid,naam:p?p.naam:'Onbekend project',code:p?(p.code||p.naam):'?',klant:k?k.naam:'—',uren:v.uren,dagen:v.dagen.size};
+  }).sort((a,b)=>b.uren-a.uren);
+  renderTopProjChart(rijen,periodeLabel);
 }
 
 function drawKlantPie(filtered){
@@ -945,17 +1258,19 @@ function drawKlantPie(filtered){
   filtered.forEach(e=>{if(e.klantId)klantT[e.klantId]=(klantT[e.klantId]||0)+e.uren;});
   const noKlant=filtered.filter(e=>!e.klantId).reduce((s,e)=>s+e.uren,0);
   const data=[];
-  klanten.forEach(k=>{if(klantT[k.id])data.push({label:k.naam,value:klantT[k.id]});});
-  if(noKlant>0)data.push({label:'Geen klant',value:noKlant});
+  klanten.forEach(k=>{if(klantT[k.id])data.push({label:k.naam,value:klantT[k.id],klantId:k.id});});
+  if(noKlant>0)data.push({label:'Geen klant',value:noKlant,klantId:''});
   const total=data.reduce((s,d)=>s+d.value,0);
   if(!total){ctx.font='bold 12px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.textAlign='center';ctx.fillText('Geen data',80,85);legend.innerHTML='';return;}
   let angle=-Math.PI/2;
   const cx=80,cy=80,r=70;
+  window.pieSlices=[];
   data.forEach((d,i)=>{
     const slice=(d.value/total)*2*Math.PI;
     ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
     ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];ctx.fill();
     ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+    window.pieSlices.push({van:angle,tot:angle+slice,klantId:d.klantId||''});
     angle+=slice;
   });
   ctx.beginPath();ctx.arc(cx,cy,40,0,2*Math.PI);ctx.fillStyle='white';ctx.fill();
@@ -964,13 +1279,266 @@ function drawKlantPie(filtered){
   ctx.font='11px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.fillText('totaal',cx,cy+12);
   legend.innerHTML=data.map((d,i)=>{
     const pct=((d.value/total)*100).toFixed(0);
-    return`<div class="pie-legend-item"><div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div><span>${d.label}</span><span class="pie-legend-pct">${pct}%</span><span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span></div>`;
+    return`<div class="pie-legend-item clickable" onclick="kiesKlant('${d.klantId}')" title="Filter op ${escAttr(d.label)}"><div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div><span>${d.label}</span><span class="pie-legend-pct">${pct}%</span><span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span></div>`;
   }).join('');
 }
 
-function clearDashFilter(){
-  ['dash-medewerker','dash-klant','dash-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+// ── PERIODEKEUZE DASHBOARD ──
+const MAANDNAMEN=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+function dIso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function maandLabel(ym){const[y,m]=ym.split('-');return `${MAANDNAMEN[parseInt(m)-1]} ${y}`;}
+
+function dashPeriode(){
+  const modus=document.getElementById('dash-periode')?.value||'maand';
+  const nu=new Date();
+  const j=nu.getFullYear(), m=nu.getMonth();
+  const eersteVan=(y,mm)=>dIso(new Date(y,mm,1));
+  const laatsteVan=(y,mm)=>dIso(new Date(y,mm+1,0));
+  switch(modus){
+    case 'alles':      return {van:'',tot:'',label:'alle periodes'};
+    case 'maand':      return {van:eersteVan(j,m),tot:laatsteVan(j,m),label:maandLabel(`${j}-${String(m+1).padStart(2,'0')}`)};
+    case 'vorige':{
+      const d=new Date(j,m-1,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(d.getFullYear(),d.getMonth()),
+              label:maandLabel(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)};
+    }
+    case 'laatste3':{
+      const d=new Date(j,m-2,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(j,m),label:'de laatste 3 maanden'};
+    }
+    case 'laatste12':{
+      const d=new Date(j,m-11,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(j,m),label:'de laatste 12 maanden'};
+    }
+    case 'kwartaal':{
+      const start=Math.floor(m/3)*3;
+      return {van:eersteVan(j,start),tot:laatsteVan(j,start+2),label:`kwartaal ${Math.floor(m/3)+1} van ${j}`};
+    }
+    case 'jaar':       return {van:eersteVan(j,0),tot:laatsteVan(j,11),label:`${j}`};
+    case 'vorigjaar':  return {van:eersteVan(j-1,0),tot:laatsteVan(j-1,11),label:`${j-1}`};
+    case 'maandkeuze':{
+      const ym=document.getElementById('dash-maand')?.value||'';
+      if(!ym)return {van:'',tot:'',label:'alle periodes'};
+      const[y,mm]=ym.split('-').map(Number);
+      return {van:eersteVan(y,mm-1),tot:laatsteVan(y,mm-1),label:maandLabel(ym)};
+    }
+    case 'aangepast':{
+      const van=document.getElementById('dash-van')?.value||'';
+      const tot=document.getElementById('dash-tot')?.value||'';
+      const f=d=>new Date(d).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'});
+      let label='alle registraties';
+      if(van&&tot)label=`${f(van)} – ${f(tot)}`;
+      else if(van)label=`vanaf ${f(van)}`;
+      else if(tot)label=`tot en met ${f(tot)}`;
+      return {van,tot,label};
+    }
+  }
+  return {van:'',tot:'',label:'alle periodes'};
+}
+
+function periodeGewijzigd(){
+  const modus=document.getElementById('dash-periode').value;
+  const toon=(id,ja)=>{const el=document.getElementById(id);if(el)el.style.display=ja?'':'none';};
+  toon('dash-maand',modus==='maandkeuze');
+  ['dash-van-lbl','dash-van','dash-tot-lbl','dash-tot'].forEach(id=>toon(id,modus==='aangepast'));
+  const nu=new Date();
+  if(modus==='maandkeuze'){
+    const el=document.getElementById('dash-maand');
+    if(el&&!el.value)el.value=`${nu.getFullYear()}-${String(nu.getMonth()+1).padStart(2,'0')}`;
+  }
+  if(modus==='aangepast'){
+    const v=document.getElementById('dash-van'),t=document.getElementById('dash-tot');
+    if(v&&!v.value)v.value=dIso(new Date(nu.getFullYear(),nu.getMonth(),1));
+    if(t&&!t.value)t.value=dIso(nu);
+  }
   renderDashboard();
+}
+
+// ── INTERACTIEF DASHBOARD ──
+let dashDetail=null;
+
+function kiesMaand(ym){
+  const sel=document.getElementById('dash-periode'),el=document.getElementById('dash-maand');
+  if(!sel||!el)return;
+  dashDetail=null;
+  if(sel.value==='maandkeuze'&&el.value===ym)sel.value='alles';
+  else {sel.value='maandkeuze';el.value=ym;}
+  periodeGewijzigd();
+}
+function kiesKlant(kid){
+  const el=document.getElementById('dash-klant');
+  if(!el)return;
+  el.value=(String(el.value)===String(kid))?'':String(kid);
+  renderDashboard();
+}
+function klantPieClick(ev){
+  const c=document.getElementById('klantPie');
+  const rect=c.getBoundingClientRect();
+  const x=(ev.clientX-rect.left)*(c.width/rect.width)-80;
+  const y=(ev.clientY-rect.top)*(c.height/rect.height)-80;
+  const afstand=Math.sqrt(x*x+y*y);
+  if(afstand<40){kiesKlant('');return;}          // binnenste cirkel = filter wissen
+  if(afstand>70||!window.pieSlices)return;
+  let hoek=Math.atan2(y,x);
+  if(hoek< -Math.PI/2)hoek+=2*Math.PI;
+  const sl=window.pieSlices.find(s=>hoek>=s.van&&hoek<s.tot);
+  if(sl)kiesKlant(sl.klantId);
+}
+
+function openDashDetail(kind,key){
+  if(dashDetail&&dashDetail.kind===kind&&String(dashDetail.key)===String(key)){closeDashDetail();return;}
+  dashDetail={kind,key};
+  renderDashboard();
+  const el=document.getElementById('dashDetail');
+  if(el){
+    const r=el.getBoundingClientRect();
+    if(r.top<90||r.top>window.innerHeight-120){
+      window.scrollTo({top:r.top+window.scrollY-92,behavior:'smooth'});
+    }
+  }
+}
+function closeDashDetail(){dashDetail=null;renderDashboard();}
+
+function detBalkRij(label,uren,max,extra=''){
+  const b=max?Math.max(2,Math.round((uren/max)*100)):0;
+  return`<div class="det-row">
+    <div>${label}${extra?`<span style="font-size:11px;color:var(--gray-400);"> ${extra}</span>`:''}</div>
+    <div class="det-bar"><div style="width:${b}%;"></div></div>
+    <div class="det-uren">${uren.toFixed(2)} u</div>
+  </div>`;
+}
+function detDatum(d){return new Date(d).toLocaleDateString('nl-BE',{weekday:'short',day:'2-digit',month:'short'});}
+function detRegels(lijst,toonProject){
+  return`<div class="det-list">${lijst.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId);
+    const stukken=[e.type||'',e.omschrijving||''].filter(Boolean).join(' — ');
+    return`<div class="det-li"><span class="dd">${detDatum(e.datum)}</span><span class="dt">${toonProject?`<strong>${p?p.naam:'?'}</strong>${stukken?' · ':''}`:''}${stukken||'<span style="color:var(--gray-300);">geen omschrijving</span>'}</span><span class="du">${e.uren.toFixed(2)} u</span></div>`;
+  }).join('')}</div>`;
+}
+
+function renderDashDetail(){
+  const box=document.getElementById('dashDetail');
+  if(!box)return;
+  if(!dashDetail){box.style.display='none';box.innerHTML='';return;}
+  const filtered=window.dashFiltered||[];
+  const totaalAlles=filtered.reduce((s,e)=>s+e.uren,0);
+  let titel='',sub='',kpis=[],body='',acties='';
+
+  if(dashDetail.kind==='project'){
+    const pid=parseInt(dashDetail.key);
+    const p=projects.find(x=>x.id===pid);
+    const k=p?klanten.find(x=>x.id===p.klantId):null;
+    const rows=filtered.filter(e=>e.projectId===pid);
+    if(!rows.length){dashDetail=null;box.style.display='none';return;}
+    const tot=rows.reduce((s,e)=>s+e.uren,0);
+    const dagen=new Set(rows.map(e=>e.datum)).size;
+    titel=p?p.naam:'Onbekend project';
+    sub=`${k?k.naam:'geen klant'}${p&&p.code?' · '+p.code:''}`;
+    kpis=[['Uren',tot.toFixed(2)],['Dagen',dagen],['Gem./dag',(tot/dagen).toFixed(2)],['Aandeel',totaalAlles?((tot/totaalAlles)*100).toFixed(0)+'%':'—']];
+    const perType={};
+    rows.forEach(e=>{const t=e.type||'Zonder omschrijving';perType[t]=(perType[t]||0)+e.uren;});
+    const st=Object.entries(perType).sort((a,b)=>b[1]-a[1]);
+    const maxT=st.length?st[0][1]:1;
+    body+=`<div class="det-sect">Verdeling per omschrijving</div><div class="det-rows">${st.map(([t,u])=>detBalkRij(t,u,maxT)).join('')}</div>`;
+    const laatste=rows.slice().sort((a,b)=>b.datum.localeCompare(a.datum)).slice(0,8);
+    body+=`<div class="det-sect">Laatste registraties</div>${detRegels(laatste,false)}`;
+    acties=`<button class="btn btn-ghost btn-sm" onclick="toonInOverzicht(${pid})">📋 Toon in overzicht</button>`;
+  }
+
+  else if(dashDetail.kind==='week'){
+    const wk=parseInt(dashDetail.key);
+    const rows=filtered.filter(e=>getWeek(new Date(e.datum))===wk);
+    if(!rows.length){dashDetail=null;box.style.display='none';return;}
+    const tot=rows.reduce((s,e)=>s+e.uren,0);
+    const dagen=new Set(rows.map(e=>e.datum)).size;
+    const data=rows.map(e=>e.datum).sort();
+    titel=`Week ${wk}`;
+    sub=`${detDatum(data[0])} – ${detDatum(data[data.length-1])}`;
+    kpis=[['Uren',tot.toFixed(2)],['Dagen',dagen],['Gem./dag',(tot/dagen).toFixed(2)],['Registraties',rows.length]];
+    const perProj={};
+    rows.forEach(e=>{perProj[e.projectId]=(perProj[e.projectId]||0)+e.uren;});
+    const sp=Object.entries(perProj).sort((a,b)=>b[1]-a[1]);
+    const maxP=sp.length?sp[0][1]:1;
+    body+=`<div class="det-sect">Uren per project</div><div class="det-rows">${sp.map(([pid,u])=>{const p=projects.find(x=>x.id==pid);return detBalkRij(p?p.naam:'Onbekend',u,maxP);}).join('')}</div>`;
+    const perDag={};
+    rows.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const sd=Object.entries(perDag).sort((a,b)=>a[0].localeCompare(b[0]));
+    const maxD=Math.max(...sd.map(d=>d[1]));
+    body+=`<div class="det-sect">Per dag</div><div class="det-rows">${sd.map(([d,u])=>detBalkRij(detDatum(d),u,maxD)).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-uren'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    titel='Totaal uren';sub='verdeling van de geselecteerde periode';
+    kpis=[['Uren',totaalAlles.toFixed(2)],['Registraties',filtered.length]];
+    const perMed={},perKlant={};
+    filtered.forEach(e=>{perMed[e.userId]=(perMed[e.userId]||0)+e.uren;perKlant[e.klantId||'']=(perKlant[e.klantId||'']||0)+e.uren;});
+    const sm=Object.entries(perMed).sort((a,b)=>b[1]-a[1]);
+    const maxM2=sm.length?sm[0][1]:1;
+    body+=`<div class="det-sect">Per medewerker</div><div class="det-rows">${sm.map(([uid,u])=>{const usr=users.find(x=>x.id==uid);return detBalkRij(usr?usr.naam:'?',u,maxM2);}).join('')}</div>`;
+    const sk=Object.entries(perKlant).sort((a,b)=>b[1]-a[1]);
+    const maxK=sk.length?sk[0][1]:1;
+    body+=`<div class="det-sect">Per klant</div><div class="det-rows">${sk.map(([kid,u])=>{const kl=klanten.find(x=>x.id==kid);return detBalkRij(kl?kl.naam:'Geen klant',u,maxK);}).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-dagen'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    const perDag={};
+    filtered.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const sd=Object.entries(perDag).sort((a,b)=>b[0].localeCompare(a[0]));
+    const maxD=Math.max(...sd.map(d=>d[1]));
+    titel='Gewerkte dagen';sub=`${sd.length} dagen met registratie`;
+    const onder8=sd.filter(d=>d[1]<8).length;
+    kpis=[['Dagen',sd.length],['Uren',totaalAlles.toFixed(2)],['Dagen < 8u',onder8],['Beste dag',Math.max(...sd.map(d=>d[1])).toFixed(2)]];
+    body+=`<div class="det-sect">Uren per dag (recentste eerst)</div><div class="det-rows">${sd.slice(0,31).map(([d,u])=>detBalkRij(detDatum(d),u,maxD)).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-gem'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    const dagNamen=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+    const perDag={};
+    filtered.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const perWd={};
+    Object.entries(perDag).forEach(([d,u])=>{const wd=new Date(d).getDay();if(!perWd[wd])perWd[wd]={uren:0,dagen:0};perWd[wd].uren+=u;perWd[wd].dagen++;});
+    const volgorde=[1,2,3,4,5,6,0].filter(i=>perWd[i]);
+    const maxG=Math.max(...volgorde.map(i=>perWd[i].uren/perWd[i].dagen));
+    const dagenTot=Object.keys(perDag).length;
+    titel='Gemiddelde per dag';sub='op basis van dagen met registratie';
+    kpis=[['Gem./dag',(totaalAlles/dagenTot).toFixed(2)],['Gem./week',(totaalAlles/Math.max(1,new Set(filtered.map(e=>getWeek(new Date(e.datum)))).size)).toFixed(2)],['Dagen',dagenTot]];
+    body+=`<div class="det-sect">Gemiddelde per weekdag</div><div class="det-rows">${volgorde.map(i=>detBalkRij(dagNamen[i],perWd[i].uren/perWd[i].dagen,maxG,`(${perWd[i].dagen}d)`)).join('')}</div>`;
+  }
+
+  box.style.display='block';
+  box.innerHTML=`
+    <div class="det-head">
+      <div><div class="det-title">${titel}</div><div class="det-sub">${sub}</div></div>
+      <div style="display:flex;gap:8px;align-items:center;">${acties}<button class="btn btn-ghost btn-sm" onclick="closeDashDetail()">✕</button></div>
+    </div>
+    <div class="det-kpis">${kpis.map(([l,v])=>`<div class="det-kpi"><div class="det-kpi-label">${l}</div><div class="det-kpi-val">${v}</div></div>`).join('')}</div>
+    ${body}`;
+}
+
+function toonInOverzicht(pid){
+  const tab=[...document.querySelectorAll('.nav-tab')].find(t=>t.textContent.includes('Overzicht'));
+  showPage('overzicht',tab);
+  document.querySelectorAll('.proj-filter-cb').forEach(cb=>{cb.checked=(String(cb.value)===String(pid));});
+  updateProjLabel();
+  const per=dashPeriode();
+  const dmed=document.getElementById('dash-medewerker')?.value||'';
+  const dk=document.getElementById('dash-klant')?.value||'';
+  const omed=document.getElementById('ov-medewerker');if(omed)omed.value=dmed;
+  const okl=document.getElementById('ov-klant');if(okl)okl.value=dk;
+  const om=document.getElementById('ov-maand');if(om)om.value='';
+  const ov=document.getElementById('ov-van');if(ov)ov.value=per.van||'';
+  const ot=document.getElementById('ov-tot');if(ot)ot.value=per.tot||'';
+  renderOverzicht();
+}
+
+function clearDashFilter(){
+  ['dash-medewerker','dash-klant','dash-van','dash-tot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const sel=document.getElementById('dash-periode');if(sel)sel.value='maand';
+  dashDetail=null;
+  periodeGewijzigd();
 }
 
 function getWeek(d){
@@ -1020,7 +1588,7 @@ function renderOverzicht(){
   if(filtered.length&&bar){const t=filtered.reduce((s,e)=>s+e.uren,0);const d=new Set(filtered.map(e=>e.datum)).size;bar.style.display='block';bar.innerHTML=`📊 <strong>${filtered.length}</strong> registraties &nbsp;·&nbsp; <strong>${d}</strong> dagen &nbsp;·&nbsp; Totaal: <strong>${t.toFixed(2)} uur</strong>`;}
   else if(bar)bar.style.display='none';
   const tbody=document.getElementById('overzichtTable');if(!tbody)return;
-  if(!filtered.length){tbody.innerHTML='<tr><td colspan="7"><div class="empty"><div class="empty-icon">📋</div><h3>Geen registraties</h3></div></td></tr>';return;}
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">📋</div><h3>Geen registraties</h3></div></td></tr>';return;}
   tbody.innerHTML=filtered.map(e=>{
     const p=projects.find(x=>x.id===e.projectId);
     const u=users.find(x=>x.id===e.userId);
@@ -1031,7 +1599,8 @@ function renderOverzicht(){
       <td><span class="badge badge-dark">${u?u.initials:'?'}</span></td>
       <td style="font-size:12px;color:var(--gray-500);">${k?k.naam:'—'}</td>
       <td><span class="badge badge-blue">${p?p.naam:'Onbekend'}</span></td>
-      <td style="color:var(--gray-500);font-size:12px;max-width:300px;">${e.omschrijving||'—'}</td>
+      <td style="white-space:nowrap;">${e.type?`<span class="badge badge-orange">${e.type}</span>`:'<span style="color:var(--gray-300);">—</span>'}</td>
+      <td style="color:var(--gray-500);font-size:12px;max-width:260px;">${e.omschrijving||'—'}</td>
       <td style="font-weight:800;color:var(--secondary);white-space:nowrap;">${e.uren.toFixed(2)} u</td>
       <td><button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">✕</button></td>
     </tr>`;
@@ -1162,10 +1731,10 @@ function getFilteredForExport(){
 }
 function exportCSV(onlyFiltered=false){
   const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
-  const rows=[['Datum','Medewerker','Klant','Project','Omschrijving','Uren']];
+  const rows=[['Datum','Medewerker','Klant','Project','Omschrijving','Toelichting','Uren']];
   data.forEach(e=>{
     const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
-    rows.push([e.datum,u?u.naam:'',k?k.naam:'',p?p.naam:'',`"${(e.omschrijving||'').replace(/"/g,'""')}"`,e.uren]);
+    rows.push([e.datum,u?u.naam:'',k?k.naam:'',p?p.naam:'',`"${(e.type||'').replace(/"/g,'""')}"`,`"${(e.omschrijving||'').replace(/"/g,'""')}"`,e.uren]);
   });
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob(['﻿'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'}));
@@ -1174,10 +1743,10 @@ function exportCSV(onlyFiltered=false){
 }
 function exportExcel(onlyFiltered=false){
   const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
-  const h=['Datum','Medewerker','Klant','Project','Omschrijving','Uren'];
+  const h=['Datum','Medewerker','Klant','Project','Omschrijving','Toelichting','Uren'];
   const rows=data.map(e=>{
     const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
-    return`<tr><td>${e.datum}</td><td>${u?u.naam:''}</td><td>${k?k.naam:''}</td><td>${p?p.naam:''}</td><td>${e.omschrijving||''}</td><td>${e.uren}</td></tr>`;
+    return`<tr><td>${e.datum}</td><td>${u?u.naam:''}</td><td>${k?k.naam:''}</td><td>${p?p.naam:''}</td><td>${e.type||''}</td><td>${e.omschrijving||''}</td><td>${e.uren}</td></tr>`;
   }).join('');
   const a=document.createElement('a');
   a.href=URL.createObjectURL(new Blob([`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></body></html>`],{type:'application/vnd.ms-excel;charset=utf-8;'}));
