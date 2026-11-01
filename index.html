@@ -1,1223 +1,1766 @@
 <!DOCTYPE html>
 <html lang="nl">
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=5, viewport-fit=cover">
-<meta name="theme-color" content="#FFFFFF">
-<meta name="color-scheme" content="light">
-<meta name="description" content="Interactieve kaart van de musea, tentoonstellingen en vikinglocaties van Reykjavík en omgeving.">
-<meta property="og:title" content="Rey 6 tot 11 nov">
-<meta property="og:description" content="Interactieve kaart van musea, tentoonstellingen en vikinglocaties in en rond Reykjavík.">
-<meta property="og:type" content="website">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='7' fill='%231B3FA0'/%3E%3Ccircle cx='16' cy='16' r='6' fill='none' stroke='%23fff' stroke-width='2.5'/%3E%3C/svg%3E">
-<meta name="mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Rey 6 tot 11 nov">
-<link rel="apple-touch-icon" href="apple-touch-icon.png">
-<title>Rey 6 tot 11 nov</title>
-<link rel="preconnect" href="https://a.basemaps.cartocdn.com" crossorigin>
-<link rel="preconnect" href="https://b.basemaps.cartocdn.com" crossorigin>
-<link rel="preconnect" href="https://c.basemaps.cartocdn.com" crossorigin>
-<link rel="preconnect" href="https://d.basemaps.cartocdn.com" crossorigin>
-<link rel="preconnect" href="https://unpkg.com" crossorigin>
-<link id="lcss" rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
-      onerror="this.href='https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.css'">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Urenregistratie – CvoorU</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
+<!-- Firebase v9 compat (geen module, werkt met globale variabelen) -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
 <style>
-:root{
-  --inkt:#171A1F; --papier:#EEF1F4; --paneel:#FFF; --steen:#6E7684;
-  --aalto:#1B3FA0; --geo:#B36A15; --viking:#6B3FA0; --rand:rgba(23,26,31,.13);
-  --sheet:58dvh; --peek:92px; --safe:env(safe-area-inset-bottom,0px);
-  --font:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
-}
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-button,a,input{touch-action:manipulation}
-html,body{height:100%;height:100dvh;margin:0;overscroll-behavior:none;-webkit-text-size-adjust:100%}
-body{background:var(--papier);color:var(--inkt);font-family:var(--font);font-size:15px;line-height:1.45}
+  :root {
+    --primary:#1E3A8A;
+    --secondary:#2563EB;
+    --accent:#22C55E;
+    --warn:#F59E0B;
+    --red:#EF4444;
+    --red-light:#FEF2F2;
+    --bg:#F8FAFC;
+    --card:#FFFFFF;
+    --text:#0F172A;
+    --text-muted:#64748B;
+    --border:#E2E8F0;
+    --secondary-light:#EFF6FF;
+    --accent-light:#F0FDF4;
+    --warn-light:#FFFBEB;
+    --primary-light:#EFF6FF;
+    --orange:var(--secondary);
+    --orange-light:var(--secondary-light);
+    --orange-mid:#93C5FD;
+    --dark:var(--primary);
+    --dark2:#1D4ED8;
+    --gray-50:var(--bg);
+    --gray-100:#F1F5F9;
+    --gray-200:var(--border);
+    --gray-300:#CBD5E1;
+    --gray-400:var(--text-muted);
+    --gray-500:#475569;
+    --gray-700:#334155;
+    --radius:10px;
+    --shadow:0 1px 3px rgba(30,58,138,.07),0 4px 16px rgba(30,58,138,.06);
+  }
+  *{margin:0;padding:0;box-sizing:border-box;}
+  body{font-family:'Nunito Sans',sans-serif;background:var(--gray-50);color:var(--dark);min-height:100vh;font-size:14px;}
 
-/* ---- kop ---- */
-#kop{
-  position:fixed;top:0;left:0;right:0;z-index:900;background:var(--paneel);
-  border-bottom:1px solid var(--rand);padding:calc(env(safe-area-inset-top,0px) + 10px) 12px 10px;
-}
-#kop h1{font-size:15px;margin:0 0 10px;font-weight:700;letter-spacing:-.01em}
-#kop h1 span{font-weight:400;color:var(--steen);font-size:13px}
-#lagen{display:grid;grid-template-columns:repeat(4,1fr);gap:7px}
-.tog{
-  position:relative;border:1px solid var(--rand);background:var(--paneel);color:var(--steen);
-  padding:11px 4px 10px;border-radius:10px;font:inherit;font-size:13.5px;font-weight:500;
-  letter-spacing:-.01em;min-height:44px;cursor:pointer;display:flex;align-items:center;
-  justify-content:center;line-height:1;overflow:hidden;
-  transition:color .14s,background .14s,border-color .14s;
-}
-.tog::before{
-  content:"";position:absolute;left:0;right:0;top:0;height:3px;
-  background:var(--laagkleur,var(--inkt));opacity:.22;transition:opacity .14s,height .14s;
-}
-.tog[aria-pressed="true"]{
-  color:var(--laagkleur,var(--inkt));
-  background:color-mix(in srgb,var(--laagkleur,var(--inkt)) 9%,var(--paneel));
-  border-color:color-mix(in srgb,var(--laagkleur,var(--inkt)) 38%,var(--paneel));
-  font-weight:600;
-}
-.tog[aria-pressed="true"]::before{opacity:1;height:4px}
-.tog:active{transform:scale(.975)}
-.tog[data-laag="musea"]{--laagkleur:#1B3FA0}
-.tog[data-laag="expo"]{--laagkleur:#B36A15}
-.tog[data-laag="vik"]{--laagkleur:#6B3FA0}
-.tog[data-laag="eten"]{--laagkleur:#B03030}
-.tog[data-laag="bier"]{--laagkleur:#7A5A1E}
-.tog[data-laag="wink"]{--laagkleur:#2F7A6B}
+  .nav{background:linear-gradient(135deg,var(--primary) 0%,#162d6e 100%);padding:0 24px;display:flex;align-items:center;height:64px;gap:20px;position:sticky;top:0;z-index:100;box-shadow:0 2px 12px rgba(17,17,40,.3);}
+  .nav-brand{display:flex;align-items:center;gap:0;text-decoration:none;flex-shrink:0;}
+  .nav-divider{width:1px;height:28px;background:rgba(255,255,255,.15);margin:0 4px;}
+  .nav-tabs{display:flex;gap:2px;flex:1;}
+  .nav-tab{padding:6px 14px;border-radius:6px;font-size:13px;font-weight:700;cursor:pointer;color:rgba(255,255,255,.55);border:none;background:none;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .nav-tab:hover{background:rgba(255,255,255,.1);color:white;}
+  .nav-tab.active{background:var(--secondary);color:white;}
+  .nav-user{margin-left:auto;display:flex;align-items:center;gap:8px;cursor:pointer;padding:4px 10px;border-radius:8px;transition:background .15s;}
+  .nav-user:hover{background:rgba(255,255,255,.08);}
+  .nav-avatar{width:30px;height:30px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:800;color:white;}
+  .nav-username{font-size:13px;font-weight:600;color:rgba(255,255,255,.8);}
 
-/* ---- kaart ---- */
-#kaart{position:fixed;inset:0;background:#DCE3E8;z-index:1}
+  /* sync indicator */
+  .sync-bar{display:none;position:fixed;top:64px;left:0;right:0;z-index:99;background:#1e3a8a;color:white;font-size:12px;font-weight:700;text-align:center;padding:6px;letter-spacing:.5px;}
+  .sync-bar.show{display:block;}
+  .sync-bar.ok{background:#16a34a;}
+  .sync-bar.err{background:#dc2626;}
 
-/* ---- bottom sheet ---- */
-#sheet{
-  position:fixed;left:0;right:0;bottom:0;z-index:950;background:var(--paneel);
-  border-top:1px solid var(--rand);border-radius:16px 16px 0 0;
-  box-shadow:0 -3px 18px rgba(23,26,31,.13);
-  height:var(--sheet);max-height:640px;transform:translateY(calc(var(--sheet) - var(--peek)));
-  transition:transform .22s ease;display:flex;flex-direction:column;
-  padding-bottom:var(--safe);touch-action:none;
-}
-#sheet.open{transform:translateY(0)}
-#greep{padding:8px 14px 10px;flex:none;cursor:grab}
-#greep .bar{width:44px;height:5px;border-radius:2px;background:var(--rand);margin:0 auto 8px}
-#greep .rij{display:flex;align-items:center;gap:10px}
-#greep .titel{font-weight:700;font-size:15px}
-#greep .telling{color:var(--steen);font-size:13.5px;margin-left:auto;font-variant-numeric:tabular-nums}
-#zoek{
-  margin:0 14px 8px;padding:10px 12px;border-radius:9px;border:1px solid var(--rand);
-  background:var(--papier);color:var(--inkt);font:inherit;font-size:16px;flex:none;
-}
-#zoek:focus{outline:2px solid var(--aalto);outline-offset:1px}
-#lijst{overflow-y:auto;-webkit-overflow-scrolling:touch;flex:1;padding-bottom:20px;overscroll-behavior:contain}
-.item{
-  width:100%;text-align:left;background:none;border:0;border-top:1px solid var(--rand);
-  color:inherit;font:inherit;padding:13px 14px;min-height:64px;cursor:pointer;
-  display:flex;align-items:center;gap:12px;
-}
-.item:active{background:rgba(27,63,160,.08)}
-.item .ico{font-size:20px;flex:none;width:26px;text-align:center}
-.item .tekst{flex:1;min-width:0;display:block}
-.item .naam{font-weight:600;font-size:15px;line-height:1.25;display:block}
-.item .meta{color:var(--steen);font-size:12.5px;margin-top:3px;display:flex;gap:7px;align-items:center;
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.item .streep{width:3px;height:12px;border-radius:2px;flex:none}
-.item .afstand{flex:none;font-variant-numeric:tabular-nums;font-size:15px;font-weight:600;color:var(--steen)}
-.item .afstand small{font-size:10.5px;font-weight:400;display:block;text-align:right;margin-top:-2px}
-.merk{margin-left:5px;font-size:11px}
-.merk.expo{color:var(--geo)} .merk.vik{color:var(--viking)} .merk.winter{color:var(--aalto)}
-#voet{padding:14px;color:var(--steen);font-size:11.5px;border-top:1px solid var(--rand)}
-#voet button{background:none;border:0;color:var(--aalto);font:inherit;font-size:11.5px;padding:6px 0;cursor:pointer;text-decoration:underline}
+  .modal-overlay{display:none;position:fixed;inset:0;background:rgba(17,17,40,.7);z-index:200;align-items:center;justify-content:center;}
+  .modal-overlay.show{display:flex;}
+  .modal{background:white;border-radius:16px;padding:32px;width:360px;box-shadow:0 20px 60px rgba(0,0,0,.3);}
+  .modal-title{font-size:16px;font-weight:800;color:var(--dark);margin-bottom:16px;}
+  .user-btn{display:flex;align-items:center;gap:12px;padding:10px 14px;border:1.5px solid var(--gray-200);border-radius:10px;background:white;cursor:pointer;width:100%;margin-bottom:8px;transition:all .15s;font-family:'Nunito Sans',sans-serif;}
+  .user-btn:hover{border-color:var(--secondary);background:var(--secondary-light);}
+  .user-btn.active-user{border-color:var(--secondary);background:var(--secondary-light);}
+  .user-avatar{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--secondary),var(--primary));display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;color:white;flex-shrink:0;}
+  .user-avatar.alt{background:linear-gradient(135deg,var(--primary),#162d6e);}
 
-/* ---- popups ---- */
-.leaflet-popup-content-wrapper{background:var(--paneel);color:var(--inkt);border-radius:10px;border:1px solid var(--rand);box-shadow:0 4px 20px rgba(23,26,31,.18)}
-.leaflet-popup-content{margin:12px 14px;font-size:13.5px;line-height:1.45}
-.leaflet-container a.leaflet-popup-close-button{width:34px;height:34px;font-size:20px;padding:6px 6px 0 0;color:var(--steen)}
-.pop-cat{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--steen)}
-.pop-naam{font-weight:700;font-size:16px;margin:2px 0 1px;line-height:1.2}
-.pop-isl{color:var(--steen);font-size:12.5px;font-style:italic;margin-bottom:5px}
-.pop-adres{color:var(--steen);font-size:12.5px;margin-bottom:6px}
-.pop-links{margin-top:10px;display:flex;flex-direction:column;gap:2px}
-.pop-links a{color:var(--aalto);font-size:13.5px;padding:6px 0;display:inline-block}
-.pop-expo{margin-top:8px;padding:7px 9px;border-left:2px solid var(--geo);background:rgba(179,106,21,.10);font-size:12.5px}
-.pop-winter{margin-top:8px;padding:7px 9px;border-left:2px solid var(--aalto);background:rgba(27,63,160,.09);font-size:12.5px}
-.leaflet-control-attribution{background:rgba(255,255,255,.82)!important;color:var(--steen)!important;font-size:10px!important}
-.leaflet-bottom.leaflet-right{margin-bottom:calc(var(--peek) - 8px)}
-.leaflet-control-zoom{display:none}
-.gv{width:32px;height:32px;display:flex;align-items:center;justify-content:center;font-size:17px;
-  background:var(--paneel);border:2.5px solid #B03030;border-radius:50%;box-shadow:0 1px 4px rgba(23,26,31,.35);line-height:1}
-.marker{width:26px;height:26px;display:flex;align-items:center;justify-content:center}
-.marker i{width:14px;height:14px;border-radius:50%;border:2px solid #fff;box-shadow:0 1px 3px rgba(23,26,31,.4);display:block}
-.marker.thuis i{width:15px;height:15px;border-radius:3px;transform:rotate(45deg)}
-#hier{
-  position:fixed;right:12px;bottom:calc(var(--peek) + 16px + var(--safe));z-index:940;width:46px;height:46px;
-  border-radius:50%;border:1px solid var(--rand);background:var(--paneel);font-size:19px;
-  box-shadow:0 2px 10px rgba(23,26,31,.16);cursor:pointer;line-height:1;
-}
-@media (min-width:900px){
-  #lagen{grid-template-columns:repeat(8,minmax(0,100px))}
-  :root{--sheet:100dvh}
-  #sheet{left:auto;right:0;top:0;width:380px;height:100dvh;border-radius:0;border-left:1px solid var(--rand);border-top:0;transform:none;box-shadow:none;padding-top:64px}
-  #greep .bar{display:none}
-  #kaart{right:380px}
-  .leaflet-control-zoom{display:block}
-  #hier{right:396px;bottom:20px}
-  .leaflet-bottom.leaflet-right{margin-bottom:0}
-}
-@media (prefers-reduced-motion:reduce){#sheet{transition:none}}
+  .page{display:none;padding:24px;max-width:1100px;margin:0 auto;}
+  .page.active{display:block;}
+  .page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;}
+  .page-header h1{font-size:22px;font-weight:800;color:var(--dark);}
+  .page-header p{font-size:13px;color:var(--gray-400);margin-top:2px;}
 
-/* ---- bus-laag en vervoerpaneel ---- */
-.tog[data-laag="air"]{--laagkleur:#C2185B}
-.tog[data-actie="vervoer"]{--laagkleur:#171A1F}
-#vervoer{
-  position:fixed;left:0;right:0;bottom:0;top:var(--kopH,112px);z-index:960;
-  background:var(--papier);display:none;flex-direction:column;border-top:1px solid var(--rand);
-}
-#vervoer.open{display:flex}
-.vkopbalk{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--paneel);border-bottom:1px solid var(--rand);flex:none}
-.vkopbalk strong{font-size:15px}
-#vsluit{margin-left:auto;width:44px;height:44px;border-radius:10px;border:1px solid var(--rand);background:var(--paneel);color:var(--inkt);font-size:18px;cursor:pointer}
-.vtabs{display:flex;gap:7px;padding:8px 12px;background:var(--paneel);border-bottom:1px solid var(--rand);flex:none}
-.vtab{flex:1;min-height:44px;border:1px solid var(--rand);border-radius:10px;background:var(--paneel);color:var(--steen);font:inherit;font-size:14px;font-weight:500;cursor:pointer}
-.vtab[aria-pressed="true"]{color:#2A6F97;background:color-mix(in srgb,#2A6F97 9%,var(--paneel));border-color:color-mix(in srgb,#2A6F97 38%,var(--paneel));font-weight:600}
-#vinhoud{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;padding:12px 12px calc(28px + var(--safe))}
-.vk{background:var(--paneel);border:1px solid var(--rand);border-radius:12px;padding:12px 13px;margin-bottom:10px}
-.vk.eerste{border-color:#2A6F97;box-shadow:0 0 0 1px #2A6F97 inset}
-.vk.ok{border-color:#2F7A6B;box-shadow:0 0 0 1px #2F7A6B inset}
-.vk.vroeg,.vk.laat{opacity:.78}
-.vt{font-weight:700;font-size:15px;margin-bottom:8px}
-.vkop2{font-size:11.5px;letter-spacing:.06em;text-transform:uppercase;color:var(--steen);margin:14px 2px 6px}
-.vform{display:flex;gap:10px;flex-wrap:wrap}
-.vform label{display:flex;flex-direction:column;gap:4px;font-size:12px;color:var(--steen);flex:1;min-width:120px}
-.vform input,.vform select{font:inherit;font-size:16px;color:var(--inkt);padding:10px 12px;border-radius:9px;border:1px solid var(--rand);background:var(--papier);min-height:44px}
-.vnoot{font-size:12.5px;color:var(--steen);margin-top:9px;line-height:1.4}
-.vnoot b{color:var(--inkt)}
-.vrij{display:flex;align-items:baseline;gap:9px;flex-wrap:wrap}
-.vuur{font-size:20px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
-.vdoel{font-weight:600;font-size:14.5px}
-.vwacht{margin-left:auto;font-size:12px;color:var(--steen)}
-.vsub{font-size:13px;color:var(--steen);margin-top:6px;line-height:1.5}
-.vsub b{color:var(--inkt)}
-.vwaarsch{margin-top:8px;padding:7px 9px;border-left:2px solid var(--geo);background:rgba(179,106,21,.10);font-size:12.5px}
-.vknoppen{display:flex;gap:7px;flex-wrap:wrap;margin-top:6px}
-.vknoppen button{flex:1;min-width:110px;min-height:44px;border:1px solid var(--rand);border-radius:10px;background:var(--paneel);color:#2A6F97;font:inherit;font-size:13.5px;font-weight:600;cursor:pointer}
-.vtabel{width:100%;border-collapse:collapse;font-size:13.5px;font-variant-numeric:tabular-nums}
-.vtabel th{font-size:11px;color:var(--steen);font-weight:500;text-align:right;padding:2px 4px 6px}
-.vtabel th:first-child,.vtabel td:first-child{text-align:left}
-.vtabel td{padding:8px 4px;border-top:1px solid var(--rand);text-align:right;vertical-align:top}
-.vtabel small{color:var(--steen);font-size:11px}
-.vlijst{margin:0;padding-left:18px;font-size:13px;line-height:1.5}
-.vlijst li{margin-bottom:5px}
-@media (min-width:900px){
-  #vervoer{right:380px}
-}
+  .card{background:white;border-radius:var(--radius);box-shadow:var(--shadow);padding:20px 24px;}
+  .card-title{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-400);margin-bottom:16px;}
+  .mb-16{margin-bottom:16px;} .mb-24{margin-bottom:24px;} .mb-20{margin-bottom:20px;}
 
-.bordrij{display:flex;align-items:center;flex-wrap:wrap;gap:4px 9px;margin:7px 0 2px}
-.bord{display:inline-flex;align-items:baseline;gap:7px;background:#171A1F;color:#FFB300;border-radius:5px;padding:5px 9px;font:700 13.5px/1.1 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;letter-spacing:.02em;box-shadow:0 0 0 1px #3A3F48 inset}
-.bord b{font-size:15px;color:#fff;background:#2A6F97;border-radius:3px;padding:2px 5px}
-.bordx{font-size:12.5px;color:var(--steen)}
-.bordnoot{font-size:12px;color:var(--steen);margin-top:6px;line-height:1.4}
+  .stats-row{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:24px;}
+  .stat-card{background:white;border-radius:var(--radius);padding:18px 20px;box-shadow:var(--shadow);position:relative;overflow:hidden;}
+  .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;}
+  .stat-card.orange::before{background:var(--secondary);}
+  .stat-card.dark::before{background:var(--primary);}
+  .stat-card.mid::before{background:var(--accent);}
+  .stat-label{font-size:10px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;color:var(--gray-400);}
+  .stat-value{font-size:28px;font-weight:900;color:var(--dark);margin:4px 0 2px;line-height:1;}
+  .stat-sub{font-size:11px;color:var(--gray-400);}
 
-.airrij{font-size:13px;line-height:1.35;margin:4px 0}
-.airrij b{display:inline-block;min-width:18px;text-align:center;background:#C2185B;color:#fff;border-radius:9px;padding:0 5px;font-size:11.5px}
-.airrij.alt b{background:#8EA0A8}
-.airrij.alt{opacity:.85}
-.airtijd{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:12px}
-.airrij i{color:var(--steen);font-size:12px}
-.airnaar{display:block;font-size:12px;color:var(--steen);margin-left:24px}
+  .form-group{display:flex;flex-direction:column;gap:6px;margin-bottom:14px;}
+  label{font-size:10px;font-weight:800;color:var(--gray-500);letter-spacing:.8px;text-transform:uppercase;}
+  input,select,textarea{font-family:'Nunito Sans',sans-serif;font-size:14px;border:1.5px solid var(--gray-200);border-radius:8px;padding:9px 12px;color:var(--dark);background:white;transition:border-color .15s;outline:none;width:100%;}
+  input:focus,select:focus,textarea:focus{border-color:var(--secondary);box-shadow:0 0 0 3px rgba(37,99,235,.12);}
+  input.error{border-color:var(--red);}
+  .error-msg{font-size:11px;color:var(--red);margin-top:2px;display:none;}
+  .error-msg.show{display:block;}
+  textarea{resize:vertical;min-height:52px;}
+
+  .entry-rows{display:flex;flex-direction:column;gap:10px;}
+  .entry-row{display:grid;grid-template-columns:200px 190px 1fr 84px 34px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+  .entry-row select,.entry-row textarea,.entry-row input{font-size:13px;padding:7px 10px;}
+  .entry-row textarea{min-height:52px;}
+  .entry-row-remove{background:var(--red-light);border:none;color:var(--red);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:background .15s;}
+  .entry-row-remove:hover{background:#fee2e2;}
+  .add-row-btn{display:flex;align-items:center;gap:6px;padding:8px 14px;background:var(--secondary-light);color:var(--secondary);border:1.5px dashed var(--secondary);border-radius:8px;cursor:pointer;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;transition:all .15s;width:100%;justify-content:center;margin-top:8px;}
+  .add-row-btn:hover{background:#DBEAFE;}
+
+  .total-bar{display:flex;align-items:center;justify-content:space-between;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:8px;padding:10px 16px;margin-top:14px;}
+  .total-bar span{font-size:13px;color:var(--gray-500);font-weight:600;}
+  .total-bar strong{font-size:18px;font-weight:900;color:var(--secondary);}
+  .total-bar.warn strong{color:#d97706;}
+  .total-bar.ok strong{color:var(--accent);}
+
+  .btn{padding:9px 20px;border-radius:8px;font-family:'Nunito Sans',sans-serif;font-size:13px;font-weight:700;cursor:pointer;border:none;transition:all .15s;display:inline-flex;align-items:center;gap:6px;}
+  .btn-primary{background:var(--secondary);color:white;} .btn-primary:hover{background:var(--primary);}
+  .btn-dark{background:var(--primary);color:white;} .btn-dark:hover{background:#162d6e;}
+  .btn-ghost{background:var(--gray-100);color:var(--gray-700);} .btn-ghost:hover{background:var(--gray-200);}
+  .btn-danger{background:var(--red-light);color:var(--red);}
+  .btn-sm{padding:5px 12px;font-size:12px;border-radius:6px;}
+  .btn-row{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;}
+
+  .table-wrap{overflow-x:auto;border-radius:var(--radius);}
+  table{width:100%;border-collapse:collapse;}
+  thead th{font-size:10px;font-weight:800;letter-spacing:1px;text-transform:uppercase;color:var(--gray-400);padding:10px 14px;text-align:left;background:var(--gray-50);border-bottom:1px solid var(--gray-200);white-space:nowrap;}
+  tbody tr{border-bottom:1px solid var(--gray-100);transition:background .1s;}
+  tbody tr:hover{background:var(--gray-50);}
+  tbody tr:last-child{border-bottom:none;}
+  tbody td{padding:11px 14px;font-size:13px;color:var(--gray-700);vertical-align:middle;}
+  .badge{display:inline-flex;align-items:center;padding:3px 8px;border-radius:20px;font-size:11px;font-weight:700;}
+  .badge-blue{background:var(--secondary-light);color:var(--primary);}
+  .badge-orange{background:#FEF9C3;color:#92400E;}
+  .badge-dark{background:#EFF6FF;color:var(--primary);}
+  .badge-gray{background:var(--gray-100);color:var(--gray-400);}
+
+  .filter-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
+  .filter-row select,.filter-row input{max-width:200px;padding:7px 12px;font-size:13px;}
+  .filter-label{font-size:10px;font-weight:800;color:var(--gray-400);text-transform:uppercase;letter-spacing:.8px;white-space:nowrap;}
+
+  .chart-bars{display:flex;align-items:flex-end;gap:8px;padding:0 4px;margin-top:8px;}
+  .chart-col{display:flex;flex-direction:column;align-items:center;gap:4px;flex:1;max-width:120px;}
+  .chart-col.clickable{cursor:pointer;border-radius:6px;transition:background .15s;}
+  .chart-col.clickable:hover{background:var(--secondary-light);}
+  .chart-col.clickable:hover .chart-bar{filter:brightness(1.12);}
+  .chart-col.actief .chart-bar{outline:2px solid var(--accent);outline-offset:1px;}
+  .hint{font-weight:700;letter-spacing:0;text-transform:none;color:var(--gray-300);font-size:10px;}
+  .stat-card.clickable{cursor:pointer;transition:transform .12s,box-shadow .15s;}
+  .stat-card.clickable:hover{transform:translateY(-2px);box-shadow:0 4px 18px rgba(30,58,138,.14);}
+  .pie-legend-item.clickable{cursor:pointer;padding:3px 6px;border-radius:6px;transition:background .15s;}
+  .pie-legend-item.clickable:hover{background:var(--secondary-light);}
+  .det-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:14px;}
+  .det-title{font-size:16px;font-weight:900;color:var(--dark);}
+  .det-sub{font-size:12px;color:var(--gray-400);margin-top:2px;}
+  .det-kpis{display:flex;gap:22px;flex-wrap:wrap;margin-bottom:16px;}
+  .det-kpi{min-width:92px;}
+  .det-kpi-label{font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);}
+  .det-kpi-val{font-size:20px;font-weight:900;color:var(--primary);line-height:1.2;}
+  .det-sect{font-size:10px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);margin:14px 0 8px;}
+  .det-rows{display:flex;flex-direction:column;gap:6px;}
+  .det-row{display:grid;grid-template-columns:minmax(120px,1.4fr) 1fr 66px;gap:10px;align-items:center;font-size:12.5px;color:var(--gray-700);}
+  .det-row .det-bar{height:8px;background:var(--gray-100);border-radius:6px;overflow:hidden;}
+  .det-row .det-bar>div{height:100%;background:linear-gradient(90deg,var(--secondary),var(--primary));}
+  .det-row .det-uren{text-align:right;font-weight:800;color:var(--secondary);white-space:nowrap;}
+  .det-list{display:flex;flex-direction:column;gap:4px;font-size:12.5px;}
+  .det-li{display:flex;gap:10px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--gray-100);}
+  .det-li:last-child{border-bottom:none;}
+  .det-li .dd{font-weight:700;color:var(--dark);white-space:nowrap;min-width:76px;}
+  .det-li .dt{color:var(--gray-500);flex:1;}
+  .det-li .du{font-weight:800;color:var(--secondary);white-space:nowrap;}
+  @media(max-width:768px){ .det-row{grid-template-columns:1fr 58px;} .det-row .det-bar{display:none;} }
+  .chart-bar{width:100%;border-radius:4px 4px 0 0;background:linear-gradient(180deg,var(--secondary),var(--primary));min-height:4px;}
+  .chart-bar.dark{background:linear-gradient(180deg,var(--primary),#162d6e);}
+  .chart-label{font-size:10px;color:var(--gray-400);font-weight:600;text-align:center;}
+  .chart-val{font-size:11px;font-weight:700;color:var(--gray-500);}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:20px;}
+  .three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:20px;}
+
+  .pie-wrap{display:flex;align-items:center;gap:32px;flex-wrap:wrap;}
+  .pie-legend{display:flex;flex-direction:column;gap:8px;flex:1;}
+  .pie-legend-item{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--gray-700);}
+  .pie-dot{width:12px;height:12px;border-radius:3px;flex-shrink:0;}
+  .pie-legend-pct{margin-left:auto;font-weight:800;color:var(--dark);}
+
+  .toggle-wrap{display:flex;align-items:center;gap:8px;}
+  .toggle{width:36px;height:20px;background:var(--gray-300);border-radius:20px;cursor:pointer;position:relative;transition:background .2s;border:none;flex-shrink:0;}
+  .toggle::after{content:'';position:absolute;width:14px;height:14px;background:white;border-radius:50%;top:3px;left:3px;transition:transform .2s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+  .toggle.on{background:var(--accent);}
+  .toggle.on::after{transform:translateX(16px);}
+
+  .toast{position:fixed;bottom:24px;right:24px;background:var(--dark);color:white;padding:12px 18px;border-radius:10px;font-size:13px;font-weight:600;box-shadow:0 8px 24px rgba(0,0,0,.2);transform:translateY(80px);opacity:0;transition:all .25s cubic-bezier(.34,1.56,.64,1);z-index:999;}
+  .toast.show{transform:translateY(0);opacity:1;}
+  .toast.success{border-left:3px solid #16a34a;} .toast.error{border-left:3px solid var(--red);} .toast.warn{border-left:3px solid #d97706;}
+
+  .dup-warning{display:none;margin-top:10px;padding:10px 14px;background:#fffbeb;border:1.5px solid #fcd34d;border-radius:8px;font-size:12px;color:#92400e;}
+  .empty{text-align:center;padding:48px 24px;color:var(--gray-400);}
+  .empty-icon{font-size:40px;margin-bottom:8px;}
+  .empty h3{font-size:15px;font-weight:700;color:var(--gray-500);margin-bottom:4px;}
+
+  /* ── PROJECT COMBOBOX (zoekbare dropdown) ── */
+  .combo{position:relative;}
+  .combo-input{cursor:text;}
+  .combo-list{display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--secondary);border-radius:8px;box-shadow:0 8px 24px rgba(30,58,138,.15);z-index:80;max-height:240px;overflow-y:auto;padding:4px 0;}
+  .combo-list.show{display:block;}
+  .combo-item{padding:8px 12px;font-size:13px;color:var(--gray-700);cursor:pointer;display:flex;justify-content:space-between;align-items:center;gap:8px;}
+  .combo-item:hover,.combo-item.highlight{background:var(--secondary-light);color:var(--primary);}
+  .combo-item .ci-klant{font-size:11px;color:var(--gray-400);white-space:nowrap;}
+  .combo-empty{padding:10px 12px;font-size:12px;color:var(--gray-400);}
+  .combo-item.inactive{opacity:.5;}
+
+  /* ── OMSCHRIJVING-COMBOBOX (type-lijst, beheerbaar) ── */
+  .oc-list{right:auto;min-width:265px;max-height:290px;}
+  .tc-list{max-height:260px;}
+  .tc-list .combo-item{line-height:1.35;align-items:flex-start;}
+  .tc-list .combo-item span:first-child{display:block;}
+  .oc-group{padding:9px 12px 3px;font-size:9px;font-weight:800;letter-spacing:1.1px;text-transform:uppercase;color:var(--gray-400);background:white;}
+  .oc-list .combo-item{line-height:1.3;}
+  .combo-item .ci-del{opacity:0;font-size:12px;line-height:1;color:var(--gray-400);padding:2px 5px;border-radius:4px;flex-shrink:0;}
+  .combo-item:hover .ci-del,.combo-item.highlight .ci-del{opacity:1;}
+  .combo-item .ci-del:hover{background:var(--red-light);color:var(--red);}
+  .combo-foot{border-top:1px solid var(--gray-100);margin-top:4px;padding:9px 12px;font-size:12px;font-weight:800;color:var(--secondary);cursor:pointer;display:flex;align-items:center;gap:6px;}
+  .combo-foot:hover{background:var(--secondary-light);}
+  .row-tekst{line-height:1.4;}
+
+  @media(max-width:768px){
+    .stats-row,.two-col,.three-col{grid-template-columns:1fr 1fr;}
+    .entry-row{grid-template-columns:1fr 34px;}
+    .entry-row>div{grid-column:1;}
+    .entry-row-remove{grid-column:2;grid-row:1;}
+  }
 </style>
 </head>
 <body>
 
-<div id="kaart"></div>
+<!-- SYNC BAR -->
+<div class="sync-bar" id="syncBar">⏳ Data laden van cloud…</div>
 
-<header id="kop">
-  <h1>Rey 6 tot 11 nov <span>· 2026</span></h1>
-  <div id="lagen">
-    <button class="tog" data-laag="musea" aria-pressed="true">Musea</button>
-    <button class="tog" data-laag="expo" aria-pressed="true">Expo’s</button>
-    <button class="tog" data-laag="vik" aria-pressed="false">Viking</button>
-    <button class="tog" data-laag="eten" aria-pressed="false">Eten</button>
-    <button class="tog" data-laag="bier" aria-pressed="false">Bier</button>
-    <button class="tog" data-laag="wink" aria-pressed="false">Winkels</button>
-    <button class="tog" data-laag="air" aria-pressed="false">Airwaves</button>
-    <button class="tog" data-actie="vervoer" aria-pressed="false">Vervoer</button>
+<!-- USER MODAL -->
+<div class="modal-overlay" id="userModal">
+  <div class="modal">
+    <div class="modal-title">Wie ben jij?</div>
+    <div id="userModalGrid"></div>
+    <div style="border-top:1px solid var(--gray-100);margin:12px 0;padding-top:12px;">
+      <div id="newUserFormModal" style="display:none;margin-bottom:10px;">
+        <input type="text" id="newUserName" placeholder="Volledige naam" style="margin-bottom:8px;">
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-primary btn-sm" style="flex:1;" onclick="confirmAddUser()">Toevoegen</button>
+          <button class="btn btn-ghost btn-sm" onclick="document.getElementById('newUserFormModal').style.display='none'">✕</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-sm" style="width:100%;" onclick="document.getElementById('newUserFormModal').style.display='block';document.getElementById('newUserName').focus()">+ Nieuwe medewerker</button>
+    </div>
   </div>
-</header>
+</div>
 
-<button id="hier" title="Mijn positie" aria-label="Mijn positie">◎</button>
+<!-- NAV -->
+<nav class="nav">
+  <div class="nav-brand" style="display:flex;align-items:center;gap:10px;">
+    <div style="width:38px;height:38px;background:white;border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;box-shadow:0 2px 8px rgba(0,0,0,.15);">
+      <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="12" cy="12" r="9.5" stroke="#1E3A8A" stroke-width="2"/>
+        <path d="M12 7v5l3 3" stroke="#2563EB" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        <path d="M7 3.5C5.1 4.6 3.6 6.4 3 8.5" stroke="#22C55E" stroke-width="1.8" stroke-linecap="round"/>
+      </svg>
+    </div>
+    <div style="display:flex;flex-direction:column;line-height:1;">
+      <span style="font-size:15px;font-weight:900;color:white;letter-spacing:-.3px;">time<span style="color:#22C55E;">track</span></span>
+      <span style="font-size:8.5px;font-weight:700;color:rgba(255,255,255,.5);letter-spacing:1.8px;text-transform:uppercase;">by CvoorU</span>
+    </div>
+  </div>
 
-<section id="sheet" aria-label="Lijst met locaties">
-  <div id="greep">
-    <div class="bar"></div>
-    <div class="rij"><span class="titel">Lijst</span><span class="telling" id="telling"></span></div>
+  <div class="nav-divider"></div>
+  <div style="display:flex;flex-direction:column;line-height:1.3;">
+    <span style="font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:white;">URENREGISTRATIE</span>
   </div>
-  <input id="zoek" type="search" placeholder="Zoek op naam of adres" aria-label="Zoeken" enterkeyhint="search">
-  <div id="lijst"></div>
-  <div id="voet">
-    <div id="status">Posities laden…</div>
-    <button id="opnieuw" type="button">Posities opnieuw ophalen</button>
-    <div style="margin-top:6px">❄ beperkt open in de winter · ● tentoonstelling · ◆ vikingtijd · 🚌 bushalte · 🎶 Airwaves<br>Tik een knop bovenaan om een laag aan of uit te zetten<br>
-    Kaart © OpenStreetMap, © CARTO · afstanden hemelsbreed</div>
-  </div>
-</section>
 
-<section id="vervoer" aria-label="Vervoer KEF en Reykjavík">
-  <div class="vkopbalk"><strong>Vervoer KEF ↔ Reykjavík</strong><button id="vsluit" type="button" aria-label="Sluiten">✕</button></div>
-  <div class="vtabs">
-    <button class="vtab" type="button" data-tab="aan" aria-pressed="true">Vr 6 nov</button>
-    <button class="vtab" type="button" data-tab="terug" aria-pressed="false">Di 10 nov</button>
-    <button class="vtab" type="button" data-tab="info" aria-pressed="false">Info</button>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('invoer',this)">📝 Invoer</button>
+    <button class="nav-tab" onclick="showPage('dashboard',this)">📊 Dashboard</button>
+    <button class="nav-tab" onclick="showPage('overzicht',this)">📋 Overzicht</button>
+    <button class="nav-tab" onclick="showPage('projecten',this)">🗂 Projecten</button>
   </div>
-  <div id="vinhoud"></div>
-</section>
+
+  <div class="nav-user" onclick="openUserModal()">
+    <div class="nav-avatar" id="navAvatar">–</div>
+    <span class="nav-username" id="navUsername">–</span>
+  </div>
+</nav>
+
+<!-- PAGE: INVOER -->
+<div class="page active" id="page-invoer">
+  <div class="page-header">
+    <div>
+      <h1>Uren Invoeren</h1>
+      <p id="invoer-sub" style="font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-size:12px;color:var(--secondary);">URENREGISTRATIE</p>
+    </div>
+    <button class="btn btn-ghost" onclick="fillToday()">📅 Vandaag</button>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-title">Projecten &amp; Uren</div>
+    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;margin-bottom:14px;">
+      <div class="form-group" style="margin:0;">
+        <label>Datum *</label>
+        <input type="date" id="inp-datum" oninput="checkDuplicate()">
+        <span class="error-msg" id="err-datum">Vul een datum in</span>
+      </div>
+      <div id="dupWarning" class="dup-warning">⚠️ <strong>Let op:</strong> Er bestaat al een registratie voor deze datum. Nieuwe rijen worden toegevoegd aan de bestaande invoer.</div>
+    </div>
+    <div class="entry-rows" id="entryRows"></div>
+    <button class="add-row-btn" onclick="addEntryRow('','','','',true)">+ Project toevoegen</button>
+    <div class="total-bar" id="totalBar">
+      <span>Totaal vandaag</span>
+      <strong id="totalHours">0.00 u</strong>
+    </div>
+  </div>
+
+  <div class="btn-row">
+    <button class="btn btn-ghost" onclick="clearForm()">Wissen</button>
+    <button class="btn btn-primary" onclick="saveEntry()">✓ Opslaan</button>
+  </div>
+</div>
+
+<!-- PAGE: DASHBOARD -->
+<div class="page" id="page-dashboard">
+  <div class="page-header">
+    <div><h1>Dashboard</h1><p>Statistieken en overzichten</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV()">⬇ CSV</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel()">⬇ Excel</button>
+    </div>
+  </div>
+
+  <div class="filter-row">
+    <span class="filter-label">Medewerker:</span>
+    <select id="dash-medewerker" onchange="renderDashboard()"><option value="">Alle</option></select>
+    <span class="filter-label">Klant:</span>
+    <select id="dash-klant" onchange="renderDashboard()"><option value="">Alle</option></select>
+    <span class="filter-label">Periode:</span>
+    <select id="dash-periode" onchange="periodeGewijzigd()" style="max-width:180px;">
+      <option value="maand">Deze maand</option>
+      <option value="vorige">Vorige maand</option>
+      <option value="laatste3">Laatste 3 maanden</option>
+      <option value="laatste12">Laatste 12 maanden</option>
+      <option value="kwartaal">Dit kwartaal</option>
+      <option value="jaar">Dit jaar</option>
+      <option value="vorigjaar">Vorig jaar</option>
+      <option value="maandkeuze">Specifieke maand…</option>
+      <option value="aangepast">Van – tot…</option>
+      <option value="alles">Alles</option>
+    </select>
+    <input type="month" id="dash-maand" onchange="renderDashboard()" style="max-width:160px;display:none;">
+    <span class="filter-label" id="dash-van-lbl" style="display:none;">Van</span>
+    <input type="date" id="dash-van" onchange="renderDashboard()" style="max-width:155px;display:none;">
+    <span class="filter-label" id="dash-tot-lbl" style="display:none;">Tot</span>
+    <input type="date" id="dash-tot" onchange="renderDashboard()" style="max-width:155px;display:none;">
+    <button class="btn btn-ghost btn-sm" onclick="clearDashFilter()" title="Filters wissen">✕</button>
+    <span id="dash-periode-info" style="font-size:11px;font-weight:700;color:var(--gray-400);"></span>
+  </div>
+
+  <div class="stats-row" id="dashStats"></div>
+
+  <div class="card mb-20" id="dashDetail" style="display:none;"></div>
+
+  <div class="card mb-20">
+    <div class="card-title">Uren per klant <span class="hint">— klik op een klant om te filteren</span></div>
+    <div class="pie-wrap" id="klantPieWrap" style="min-height:160px;padding:8px 0;">
+      <canvas id="klantPie" width="160" height="160" style="flex-shrink:0;cursor:pointer;" onclick="klantPieClick(event)"></canvas>
+      <div class="pie-legend" id="klantPieLegend"></div>
+    </div>
+  </div>
+
+  <div class="two-col mb-20">
+    <div class="card">
+      <div class="card-title">Weekoverzicht (laatste 3 weken) <span class="hint">— klik op een week</span></div>
+      <div class="chart-bars" id="weekChart" style="height:150px;"></div>
+    </div>
+    <div class="card">
+      <div class="card-title">Uren per maand <span class="hint">— klik op een maand</span></div>
+      <div class="chart-bars" id="maandChart" style="height:150px;"></div>
+    </div>
+  </div>
+
+  <div class="card mb-20">
+    <div class="card-title"><span id="topProjTitle">Top 10 projecten — uren in geselecteerde periode</span> <span class="hint">— klik op een project</span></div>
+    <div class="chart-bars" id="topProjChart" style="height:155px;"></div>
+  </div>
+
+</div>
+</div>
+
+<!-- PAGE: OVERZICHT -->
+<div class="page" id="page-overzicht">
+  <div class="page-header">
+    <div><h1>Urenregistraties</h1><p>Alle ingevoerde registraties</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV(true)">⬇ CSV (selectie)</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportExcel(true)">⬇ Excel (selectie)</button>
+      <button class="btn btn-ghost btn-sm" onclick="exportCSV(false)">⬇ CSV (alles)</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <div class="filter-row" style="margin-bottom:0;">
+        <span class="filter-label">Medewerker:</span>
+        <select id="ov-medewerker" onchange="renderOverzicht()"><option value="">Alle</option></select>
+        <span class="filter-label">Klant:</span>
+        <select id="ov-klant" onchange="renderOverzicht()"><option value="">Alle</option></select>
+        <span class="filter-label">Maand:</span>
+        <input type="month" id="ov-maand" onchange="syncMaandToPeriod();renderOverzicht();" style="max-width:160px;">
+      </div>
+      <div class="filter-row" style="margin-bottom:0;">
+        <span class="filter-label">Projecten:</span>
+        <div style="position:relative;flex:1;max-width:460px;">
+          <button id="proj-filter-btn" onclick="toggleProjDropdown()" style="width:100%;text-align:left;padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:8px;background:white;font-family:'Nunito Sans',sans-serif;font-size:13px;color:var(--gray-700);cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
+            <span id="proj-filter-label">Alle projecten</span><span style="color:var(--gray-400);font-size:10px;">▼</span>
+          </button>
+          <div id="proj-filter-dropdown" style="display:none;position:absolute;top:calc(100% + 4px);left:0;right:0;background:white;border:1.5px solid var(--gray-200);border-radius:10px;box-shadow:0 4px 20px rgba(0,0,0,.1);z-index:50;max-height:260px;overflow-y:auto;padding:8px 0;">
+            <div style="padding:6px 12px;border-bottom:1px solid var(--gray-100);display:flex;gap:8px;">
+              <button onclick="selectAllProjects()" class="btn btn-ghost btn-sm">Alles</button>
+              <button onclick="deselectAllProjects()" class="btn btn-ghost btn-sm">Geen</button>
+            </div>
+            <div id="proj-filter-checkboxes" style="padding:4px 0;"></div>
+          </div>
+        </div>
+        <span class="filter-label">Van</span>
+        <input type="date" id="ov-van" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
+        <span class="filter-label">Tot</span>
+        <input type="date" id="ov-tot" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
+        <button class="btn btn-ghost btn-sm" onclick="clearOvFilters()">✕</button>
+      </div>
+      <div id="ov-totaal-bar" style="display:none;background:var(--secondary-light);border:1.5px solid #93C5FD;border-radius:8px;padding:8px 14px;font-size:13px;color:var(--primary);font-weight:700;"></div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Datum</th><th>Medewerker</th><th>Klant</th><th>Project</th><th>Omschrijving</th><th>Toelichting</th><th>Uren</th><th></th></tr></thead>
+        <tbody id="overzichtTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: PROJECTEN -->
+<div class="page" id="page-projecten">
+  <div class="page-header">
+    <div><h1>Projecten &amp; Klanten</h1><p>Beheer projecten en klanten</p></div>
+    <div style="display:flex;gap:10px;">
+      <button class="btn btn-ghost" onclick="showAddKlant()">+ Klant toevoegen</button>
+      <button class="btn btn-primary" onclick="showAddProject()">+ Project toevoegen</button>
+    </div>
+  </div>
+
+  <div class="card mb-16" id="addKlantForm" style="display:none;">
+    <div class="card-title">Nieuwe klant</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin:0;">
+        <label>Naam *</label>
+        <input type="text" id="nk-naam" placeholder="Gemeente / Organisatie">
+        <span class="error-msg" id="err-nk-naam">Vul een naam in</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideAddKlant()">Annuleren</button>
+      <button class="btn btn-primary" onclick="addKlant()">Toevoegen</button>
+    </div>
+  </div>
+
+  <div class="card mb-16" id="addProjectForm" style="display:none;">
+    <div class="card-title">Nieuw project</div>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;">
+      <div class="form-group" style="margin:0;">
+        <label>Projectnaam *</label>
+        <input type="text" id="np-naam" placeholder="Naam">
+        <span class="error-msg" id="err-np-naam">Vul een naam in</span>
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Code</label>
+        <input type="text" id="np-code" placeholder="CODE">
+      </div>
+      <div class="form-group" style="margin:0;">
+        <label>Klant *</label>
+        <select id="np-klant"><option value="">— Kies klant —</option></select>
+        <span class="error-msg" id="err-np-klant">Kies een klant</span>
+      </div>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-ghost" onclick="hideAddProject()">Annuleren</button>
+      <button class="btn btn-primary" onclick="addProject()">Toevoegen</button>
+    </div>
+  </div>
+
+  <div class="card mb-16">
+    <div class="card-title">Actieve klanten</div>
+    <div id="klantCards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
+  </div>
+
+  <div class="card">
+    <div class="filter-row" style="margin-bottom:12px;">
+      <span class="filter-label">Filter:</span>
+      <select id="proj-klant-filter" onchange="renderProjecten()"><option value="">Alle klanten</option></select>
+      <select id="proj-status-filter" onchange="renderProjecten()">
+        <option value="all">Alle statussen</option>
+        <option value="active">Alleen actief</option>
+        <option value="inactive">Alleen inactief</option>
+      </select>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Projectnaam</th><th>Code</th><th>Klant</th><th>Totaal uren</th><th>Status</th><th>Acties</th></tr></thead>
+        <tbody id="projectenTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
 
 <script>
-/*
- Musea Reykjavík — interactieve kaart
- Kaartlaag: OpenStreetMap / CARTO Positron.  Geocoding: Nominatim (OpenStreetMap),
- gebruikt volgens hun policy: max. 1 verzoek per seconde, resultaten lokaal gecached.
- Gegevens over musea: visitreykjavik.is, listasafn.is, listasafnreykjavikur.is,
- nordichouse.is, thjodminjasafn.is, borgarsogusafn.is, i8.is, vikingworld.is, landnam.is,
- straeto.is, flybus.is, icelandairwaves.is.
-*/
-const CATS = {
-  kunst:   {label:"Kunst",              kleur:"#1B3FA0"},
-  hist:    {label:"Geschiedenis",       kleur:"#B36A15"},
-  natuur:  {label:"Natuur & beleving",  kleur:"#3E6B48"},
-  aalto:   {label:"Aalto / bibliotheek",kleur:"#00A3C4"},
-  extra:   {label:"Curiosa",            kleur:"#8E3F6B"}
+// ══════════════════════════
+// FIREBASE INIT (compat SDK – werkt met globale variabelen)
+// ══════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyAGVCfjJX5HXUbKTjGRm6JvbeXaZ2mEpBI",
+  authDomain: "cvooru-uren.firebaseapp.com",
+  projectId: "cvooru-uren",
+  storageBucket: "cvooru-uren.firebasestorage.app",
+  messagingSenderId: "796476954078",
+  appId: "1:796476954078:web:56200961c74f02d808b94f"
 };
 
-const M = [
- {n:"Nordic House — Norræna húsið", isl:"Aalto-bibliotheek, 1968", c:"aalto", g:"Sturlugata 5, Reykjavík", ll:[64.1387,-21.9497],
-  a:"Sturlugata 5, Vatnsmýri",
-  d:"Het enige gebouw van Alvar Aalto in IJsland. Blauw keramisch dak, centrale lichtkoker in de bibliotheek, alle meubels en lampen van Aalto zelf. 30.000+ titels in zeven Noordse talen.",
-  u:"https://nordichouse.is/en/", w:"Di–zo 10–17u, maandag gesloten."},
+firebase.initializeApp(firebaseConfig);
+const db = firebase.firestore();
+const DOC = db.collection('data').doc('main');
 
- {n:"Ásmundarsalur", isl:"Beste galerie volgens Grapevine", c:"kunst", g:"Freyjugata 41, Reykjavík", ll:[64.1420,-21.9280],
-  a:"Freyjugata 41", d:"Kunsthal met wisselende exposities; beneden een filiaal van Reykjavík Roasters. Niet te verwarren met Ásmundarsafn.",
-  u:"https://asmundarsalur.is", vfl:true},
- {n:"Marshallhúsið", isl:"Nýlistasafnið, Kling & Bang, Þula, i8 Grandi", c:"kunst", g:"Marshallhúsið, Reykjavík", ll:[64.1546,-21.9550],
-  a:"Grandagarður 20, Grandi", d:"Oude visfabriek uit 1948, nu vier kunstruimtes onder één dak plus het atelier van Ólafur Elíasson en restaurant La Primavera. Tien minuten wandelen van jullie logement.",
-  u:"https://i8.is/about", vfl:true},
- {n:"i8 Gallery", isl:"", c:"kunst", g:"Tryggvagata 16, Reykjavík", ll:[64.1492,-21.9418],
-  a:"Tryggvagata 16", d:"Sinds 1995 de belangrijkste commerciële galerie van het land, tegenover Hafnarhús. Gratis binnenlopen.",
-  u:"https://i8.is", vfl:true},
- {n:"Víkingaheimar", isl:"Viking World", c:"hist", g:"Víkingaheimar, Njarðvík", ll:[63.97602,-22.52847],
-  a:"Víkingabraut 1, Njarðvík (Reykjanesbær)", d:"Gebouwd rond de Íslendingur, een replica op ware grootte van het Gokstadschip uit ±890, in 2000 van IJsland naar New York gezeild. Vlak bij de luchthaven Keflavík — te doen op de dag van aankomst of vertrek.",
-  u:"https://www.vikingworld.is/", vfl:true},
- {n:"Landnámssetur Íslands", isl:"The Settlement Center", c:"hist", g:"Landnámssetur Íslands, Borgarnes", ll:[64.5385,-21.9210],
-  a:"Brákarbraut 13–15, Borgarnes", d:"Twee tentoonstellingen met audiogids: de landname van IJsland, en de Egilssaga. In twee van de oudste huizen van Borgarnes, op een uur rijden noordwaarts.",
-  u:"https://www.landnam.is/eng/", vfl:true},
- {n:"Þingvellir", isl:"Hakið-bezoekerscentrum", c:"hist", g:"Þingvellir visitor centre, Iceland", ll:[64.2559,-21.1300],
-  a:"Þingvellir Nationaal Park, ±45 km oost", d:"Waar het Alþingi vanaf 930 samenkwam, in de breuk tussen twee continentale platen. Het bezoekerscentrum Hakið heeft een expo over de vergaderplaats; het terrein zelf is vrij toegankelijk.",
-  u:"https://www.thingvellir.is", vfl:true},
- {n:"Sólfar", isl:"Sun Voyager", c:"extra", g:"Sólfar Sun Voyager, Reykjavík", ll:[64.1475,-21.9222],
-  a:"Sæbraut, aan het water", d:"Wordt bijna altijd voor een vikingschip aangezien, maar is het niet: een droomboot van Jón Gunnar Árnason uit 1990, een ode aan de zon. Altijd open, gratis.",
-  vfl:true},
- {n:"Harpa", isl:"concert- en congreshuis", c:"extra", g:"Harpa, Reykjavík", ll:[64.1505,-21.9327],
-  a:"Austurbakki 2, oude haven", d:"Glazen gevel van Ólafur Elíasson. Geen museum, maar tijdens jullie verblijf de hoofdlocatie van de speciale Airwaves-concerten.",
-  t:"Iceland Airwaves 5–7 nov 2026; special events in Harpa: Shygirl 4 nov, Daði Freyr met het IJslands Symfonieorkest 5 nov, The Streets 8 nov.",
-  u:"https://icelandairwaves.is", vfl:true},
- {n:"Listasafn Reykjavíkur — Hafnarhús", isl:"Reykjavík Art Museum", c:"kunst", g:"Tryggvagata 17, Reykjavík", ll:[64.1494,-21.9420],
-  a:"Tryggvagata 17", d:"Hedendaagse kunst in een oud havenmagazijn; vaste zaal met Erró.",
-  u:"https://listasafnreykjavikur.is", v:"reykjavik-art-museum-hafnarhus", t:"Erró: Remix is doorlopend te zien. Najaarsprogramma nog niet bekend."},
- {n:"Listasafn Reykjavíkur — Kjarvalsstaðir", isl:"", c:"kunst", g:"Flókagata 24, Reykjavík", ll:[64.13781,-21.91350],
-  a:"Flókagata 24, Klambratún", d:"Werk van Jóhannes S. Kjarval, IJslands bekendste schilder, in een modernistisch paviljoen in het park.",
-  u:"https://listasafnreykjavikur.is", v:"reykjavik-art-museum-kjarvalsstadir", t:"Kjarval og 20. öldin loopt tot 18.10.2026; wat daarna komt is nog niet aangekondigd."},
- {n:"Listasafn Reykjavíkur — Ásmundarsafn", isl:"", c:"kunst", g:"Ásmundarsafn, Reykjavík", ll:[64.1436,-21.8930],
-  a:"Sigtún", d:"Koepelwoning en atelier die beeldhouwer Ásmundur Sveinsson zelf ontwierp; beeldentuin errond.",
-  u:"https://listasafnreykjavikur.is", v:"reykjavik-art-museum-asmundarsafn", t:"Ásmundur Sveinsson: Wonderland — langlopende opstelling."},
- {n:"Listasafn Íslands", isl:"National Gallery of Iceland", c:"kunst", g:"Fríkirkjuvegur 7, Reykjavík", ll:[64.1450,-21.9330],
-  a:"Fríkirkjuvegur 7", d:"Nationale kunstcollectie sinds 1884, aan de vijver Tjörnin.",
-  u:"https://listasafn.is", v:"national-gallery-iceland", t:"Kjarval – Kjarval in the East, 3.10.2026 – 17.1.2027: loopt tijdens jullie verblijf."},
- {n:"Einar Jónsson-museum", isl:"Listasafn Einars Jónssonar", c:"kunst", g:"Eiríksgata 3, Reykjavík", ll:[64.1418,-21.9260],
-  a:"Eiríksgata 3, bij Hallgrímskirkja", d:"Eerste openbare kunstmuseum van IJsland (1923); symbolistische beeldhouwkunst, gratis beeldentuin achteraan.",
-  u:"https://lej.is", v:"einar-jonsson-sculpture-museum"},
- {n:"Sigurjón Ólafsson-museum", isl:"LSÓ", c:"kunst", g:"Laugarnestangi 70, Reykjavík", ll:[64.1490,-21.8830],
-  a:"Laugarnestangi 70", d:"Beeldhouwwerk in het voormalige atelier aan zee. Buiten het seizoen beperkt open.",
-  v:"sigurjon-olafsson-museum", w:"Winteruren zeer beperkt — vooraf bellen of mailen."},
- {n:"Gerðarsafn", isl:"Kópavogur Art Museum", c:"kunst", g:"Hamraborg 4, Kópavogur", ll:[64.1120,-21.9060],
-  a:"Hamraborg 4, Kópavogur", d:"Modern en hedendaags; genoemd naar beeldhouwster Gerður Helgadóttir.",
-  u:"https://gerdarsafn.is", v:"gerdarsafn-art-museum"},
- {n:"Hafnarborg", isl:"", c:"kunst", g:"Strandgata 34, Hafnarfjörður", ll:[64.0670,-21.9550],
-  a:"Strandgata 34, Hafnarfjörður", d:"Cultuur- en kunstcentrum van Hafnarfjörður, sinds 1983.",
-  u:"https://hafnarborg.is", v:"hafnarborg-hafnarfjordur-centre-culture-and-fine-art"},
- {n:"Hönnunarsafn Íslands", isl:"Museum of Design and Applied Art", c:"kunst", g:"Garðatorg 1, Garðabær", ll:[64.0890,-21.9250],
-  a:"Garðatorg 1, Garðabær", d:"IJslands design en toegepaste kunst van 1900 tot nu. Kleine zaal, sterke wisselexpo's.",
-  u:"https://honnunarsafn.is", v:"museum-design-and-applied-art"},
-
- {n:"Þjóðminjasafn Íslands", isl:"Nationaal Museum", c:"hist", g:"Suðurgata 41, Reykjavík", ll:[64.1417,-21.9490],
-  a:"Suðurgata 41", d:"De rode draad door 1200 jaar IJslandse geschiedenis; gratis audiogids. Naast het Noorse Huis.",
-  u:"https://thjodminjasafn.is", v:"national-museum-iceland"},
- {n:"Safnahúsið — House of Collections", isl:"", c:"hist", g:"Hverfisgata 15, Reykjavík", ll:[64.1470,-21.9330],
-  a:"Hverfisgata 15", d:"'Treasures of a Nation': topstukken uit zes nationale collecties in het oude bibliotheekgebouw van 1909.",
-  u:"https://thjodminjasafn.is", v:"house-collections"},
- {n:"World in Words — Edda", isl:"Heimur í orðum", c:"hist", g:"Arngrímsgata 5, Reykjavík", ll:[64.1396,-21.9540],
-  a:"Arngrímsgata 5, Edda-huis", d:"De originele middeleeuwse handschriften (saga's, Edda) in het nieuwe Árni Magnússon-instituut.",
-  u:"https://arnastofnun.is", v:"world-words"},
- {n:"Aðalstræti — The Settlement Exhibition", isl:"Landnámssýningin", c:"hist", g:"Aðalstræti 16, Reykjavík", ll:[64.1477,-21.9426],
-  a:"Aðalstræti 16", d:"Ondergronds rond een echt vikinglanghuis uit 930–1000, het oudste bouwspoor van de stad.",
-  u:"https://borgarsogusafn.is", v:"adalstraeti-settlement-exhibition"},
- {n:"Sjóminjasafnið — Maritiem Museum", isl:"Stories of Sea and Land", c:"hist", g:"Grandagarður 8, Reykjavík", ll:[64.1524,-21.9490],
-  a:"Grandagarður 8, Grandi", d:"In een oude visfabriek aan de oude haven; rondleiding op kustwachtschip Óðinn. Op wandelafstand van jullie logement.",
-  u:"https://borgarsogusafn.is", v:"reykjavik-maritime-museum-stories-sea-and-land"},
- {n:"Ljósmyndasafn Reykjavíkur", isl:"Museum of Photography", c:"hist", g:"Tryggvagata 15, Reykjavík", ll:[64.1490,-21.9410],
-  a:"Tryggvagata 15, 6e verdieping", d:"Enige fotomuseum van de stad, 19e eeuw tot nu. Gratis toegang.",
-  u:"https://borgarsogusafn.is", v:"reykjavik-museum-photography"},
- {n:"Árbæjarsafn — openluchtmuseum", isl:"", c:"hist", g:"Kistuhylur 4, Reykjavík", ll:[64.1155,-21.7940],
-  a:"Kistuhylur 4", d:"Twintig verplaatste historische huizen als een dorp van rond 1900.",
-  u:"https://borgarsogusafn.is", v:"arbaer-open-air-museum",
-  w:"In de winter meestal enkel via rondleiding op vaste uren."},
- {n:"Viðey", isl:"Viðeyjarstofa", c:"hist", g:"Viðey, Reykjavík", ll:[64.1580,-21.8420],
-  a:"Eiland, veerboot vanaf Skarfabakki", d:"Oudste stenen gebouw van IJsland, Imagine Peace Tower van Yoko Ono, kerk en wandelpaden.",
-  u:"https://borgarsogusafn.is", v:"videy-island",
-  w:"Veerdienst in november sterk beperkt, vaak enkel in het weekend."},
- {n:"Saga Museum", isl:"", c:"hist", g:"Grandagarður 2, Reykjavík", ll:[64.1518,-21.9470],
-  a:"Grandagarður 2", d:"Wassenbeeldenversie van de saga's; snel te doen, populair bij kinderen.",
-  u:"https://sagamuseum.is", v:"saga-museum"},
- {n:"Gljúfrasteinn", isl:"Huis van Halldór Laxness", c:"hist", g:"Gljúfrasteinn, Mosfellsbær", ll:[64.1663,-21.5065],
-  a:"Mosfellsdalur, ±20 km oost", d:"Woonhuis van de Nobelprijswinnaar, onaangeroerd sinds de jaren '60. Auto of bus 15+27 nodig.",
-  u:"https://gljufrasteinn.is", v:"gljufrasteinn", w:"Winter: beperkte dagen en uren."},
- {n:"Nesstofa", isl:"Medisch-historisch museum", c:"hist", g:"Nesstofa, Seltjarnarnes", ll:[64.1544,-22.0033],
-  a:"Seltjarnarnes", d:"Een van de oudste stenen huizen van het land, woning van de eerste landsarts.",
-  u:"https://thjodminjasafn.is", v:"nesstofa-medical-history-museum", w:"Doorgaans enkel in het zomerseizoen open."},
- {n:"Byggðasafn Hafnarfjarðar", isl:"Hafnarfjörður Museum", c:"hist", g:"Vesturgata 8, Hafnarfjörður", ll:[64.0680,-21.9570],
-  a:"Vesturgata 8, Hafnarfjörður", d:"Stadsgeschiedenis in enkele oude huizen aan de haven.",
-  v:"hafnarfjordur-museum"},
- {n:"Hofsstaðir", isl:"Viking Settlement", c:"hist", g:"Hofsstaðir, Garðabær", ll:[64.0900,-21.9200],
-  a:"Garðabær", d:"Opgegraven langhuis uit 870–930, buiten te bekijken met infopanelen.",
-  v:"hofstadir-viking-settlement"},
-
- {n:"Perlan — Wonders of Iceland", isl:"", c:"natuur", g:"Perlan, Reykjavík", ll:[64.1290,-21.9190],
-  a:"Öskjuhlíð", d:"IJsgrot, planetarium over het noorderlicht en een uitkijkterras over de stad. In het donker van november een goede noorderlicht-plan B.",
-  u:"https://perlan.is", v:"perlan-wonders-iceland"},
- {n:"Whales of Iceland", isl:"", c:"natuur", g:"Fiskislóð 23, Reykjavík", ll:[64.1546,-21.9600],
-  a:"Fiskislóð 23–25, Grandi", d:"23 walvissen op ware grootte in een donkere loods. Vlakbij jullie logement.",
-  u:"https://whalesoficeland.is", v:"whales-iceland"},
- {n:"Náttúrufræðistofa Kópavogs", isl:"Natuurmuseum Kópavogur", c:"natuur", g:"Hamraborg 6a, Kópavogur", ll:[64.1122,-21.9070],
-  a:"Hamraborg 6a, Kópavogur", d:"600 m² IJslandse flora, fauna en geologie; gratis.",
-  u:"https://natkop.is", v:"nature-museum-kopavogur"},
-
- {n:"Hið íslenzka reðasafn", isl:"Phallological Museum", c:"extra", g:"Kalkofnsvegur 2, Reykjavík", ll:[64.1480,-21.9370],
-  a:"Kalkofnsvegur 2", d:"'s Werelds grootste penis-collectie. Precies wat het belooft.",
-  u:"https://phallus.is", v:"icelandic-phallological-museum"},
- {n:"Pönksafn Íslands", isl:"Icelandic Punk Museum", c:"extra", g:"Bankastræti 2, Reykjavík", ll:[64.1470,-21.9350],
-  a:"Bankastræti 2", d:"In een voormalig openbaar toilet onder de straat. Klein, luid, tien minuten werk.",
-  u:"https://punkmuseum.is", vfl:true},
- {n:"Aurora Reykjavík", isl:"", c:"extra", g:"Grandagarður 2, Reykjavík", ll:[64.1518,-21.9475],
-  a:"Grandagarður 2", d:"Uitleg over het noorderlicht met projectie — commerciële beleving, geen museum.",
-  u:"https://aurorareykjavik.is", vfl:true},
- {n:"Icelandic Lava Show", isl:"", c:"extra", g:"Fiskislóð 73, Reykjavík", ll:[64.1560,-21.9640],
-  a:"Fiskislóð 73, Grandi", d:"Echte gesmolten lava uitgegoten voor je neus. Reserveren nodig.",
-  u:"https://icelandiclavashow.com", vfl:true}
+// ══════════════════════════
+// DATA (vooraan gedeclareerd zodat alle functies — ook
+// asynchrone callbacks zoals de Firestore-listener — deze
+// altijd al geïnitialiseerd aantreffen, ongeacht volgorde van uitvoering)
+// ══════════════════════════
+let users = [{id:1,naam:'Jo',initials:'JO'}];
+let klanten = [
+  {id:1, naam:'Tervuren',  actief:true},
+  {id:2, naam:'Unik-ID',   actief:true},
+  {id:3, naam:'Vilvoorde', actief:true},
 ];
-
-const EXPO = [
- {plek:"Listasafn Íslands", titel:"Kjarval – Kjarval in the East",
-  periode:"3.10.2026 – 17.1.2027", zeker:true,
-  info:"Kjarval geschilderd in Oost-IJsland. Loopt met zekerheid tijdens jullie verblijf.",
-  url:"https://www.listasafn.is/en/art/upcoming-exhibitions/"},
- {plek:"Hafnarhús", titel:"Erró: Remix — including a selection of Scapes",
-  periode:"doorlopend", zeker:true,
-  info:"Vaste Erró-zaal in het oude havenmagazijn.",
-  url:"https://listasafnreykjavikur.is/en/exhibitions"},
- {plek:"Ásmundarsafn", titel:"Ásmundur Sveinsson: Wonderland",
-  periode:"langlopend (met Remnants en Open workshop)", zeker:true,
-  info:"Langlopende opstelling in het koepelhuis van de beeldhouwer.",
-  url:"https://listasafnreykjavikur.is/en/exhibitions"},
- {plek:"Harpa", titel:"Iceland Airwaves",
-  periode:"5–7 november 2026", zeker:true,
-  info:"Special events in Harpa: Shygirl 4 nov, Daði Freyr met het Symfonieorkest 5 nov, The Streets 8 nov. Overdag gratis off-venue optredens in winkels, cafés en museumzalen in het centrum.",
-  url:"https://icelandairwaves.is"},
- {plek:"Kjarvalsstaðir", titel:"Najaarsprogramma nog niet aangekondigd",
-  periode:"Kjarval og 20. öldin loopt t/m 18.10.2026", zeker:false,
-  info:"Wat er in november hangt, was begin augustus nog niet gepubliceerd.",
-  url:"https://listasafnreykjavikur.is/en/exhibitions"},
- {plek:"Marshallhúsið", titel:"i8 Grandi: 'just a shell'",
-  periode:"22.1.2026 – 22.12.2026", zeker:true,
-  info:"i8 Grandi toont elk jaar één kunstenaar. Loopt met zekerheid tijdens jullie verblijf. In hetzelfde gebouw wisselen Nýlistasafnið, Kling & Bang en Þula sneller van programma — dat najaarsprogramma is nog niet gepubliceerd.",
-  url:"https://i8.is/exhibitions/"},
- {plek:"Nordic House", titel:"Membrane: Myth and Fictions of Soil — Thomas Pausz",
-  periode:"loopt in augustus 2026, einddatum onbekend", zeker:false,
-  info:"Tentoonstelling in zaal Hvelfing, met rondleidingen door de kunstenaar. Of ze in november nog hangt, staat nergens vermeld.",
-  url:"https://nordichouse.is/en/"},
- {plek:"Þjóðminjasafn", titel:"Wisselexpo's: FLOW, The Bridal Costume, Like cats and dogs, Fengur",
-  periode:"lopen in augustus 2026, einddatums niet gepubliceerd", zeker:false,
-  info:"Naast de vaste opstelling 'Making of a Nation', die er sowieso is.",
-  url:"https://www.thjodminjasafn.is/en"},
- {plek:"Ljósmyndasafn", titel:"Wisseltentoonstelling fotografie",
-  periode:"programma najaar nog niet bekend", zeker:false,
-  info:"Vier wisselexpo's per jaar, gratis toegang.",
-  url:"https://borgarsogusafn.is"}
+let projects = [
+  {id:1, naam:'WZC_GBS',                    code:'WZC_GBS',  klantId:1, actief:true},
+  {id:2, naam:'WZC_BMS',                    code:'WZC_BMS',  klantId:1, actief:true},
+  {id:3, naam:'WZC_HVAC',                   code:'WZC_HVAC', klantId:1, actief:true},
+  {id:4, naam:'Panquin Site',               code:'PQ_SITE',  klantId:1, actief:true},
+  {id:5, naam:'Panquin Museum',             code:'PQ_MUS',   klantId:1, actief:true},
+  {id:6, naam:'Polygoon HS cabine',         code:'POL_HS',   klantId:1, actief:true},
+  {id:7, naam:'Polygoon',                   code:'POL',      klantId:1, actief:true},
+  {id:8, naam:'P Stroykens overnachtingen', code:'PS_OV',    klantId:1, actief:true},
+  {id:9, naam:'GBST Stookplaatsen',         code:'GBST_SP',  klantId:1, actief:true},
+  {id:10,naam:'GBSV_BMS',                   code:'GBSV_BMS', klantId:1, actief:true},
+  {id:11,naam:'Beheer',                     code:'BEHEER',   klantId:1, actief:true},
+  {id:12,naam:'Raamcontracten',             code:'RAAM',     klantId:1, actief:true},
+  {id:13,naam:'WEB Airco',                  code:'WEB_AC',   klantId:1, actief:true},
+  {id:14,naam:'Diverse',                    code:'DIV',      klantId:1, actief:true},
 ];
+let entries = [];
 
-const VIKING = [
- {plek:"Settlement Exhibition", info:"Een echt langhuis uit 930–1000, in situ opgegraven onder Aðalstræti, met de oudste bouwsporen van Reykjavík en een muurfragment van vóór de tefralaag van 871±2."},
- {plek:"Þjóðminjasafn", info:"Vaste opstelling 'Making of a Nation' begint bij de landname: grafvondsten, zwaarden, het Þór-beeldje uit Eyrarland en de kerkdeur van Valþjófsstaður."},
- {plek:"World in Words", info:"De middeleeuwse handschriften waarin de sagas en de Edda zijn overgeleverd — de belangrijkste geschreven bron over de vikingtijd."},
- {plek:"Saga Museum", info:"Nagespeelde sagascènes met wassen figuren. Populair en toegankelijk, maar meer beleving dan archeologie."},
- {plek:"Hofsstaðir", info:"Opgegraven langhuis uit 870–930, buiten te bekijken met lichtlijnen en infopanelen. Gratis, altijd toegankelijk."},
- {plek:"Viðey", info:"Op het eiland zijn resten van een nederzetting uit de 10e eeuw opgegraven, naast het klooster en het latere landhuis."},
- {plek:"Víkingaheimar", info:"Het schip Íslendingur, replica van het Gokstadschip (±890), plus vondsten uit de Noorse wereld en de expo over de Noord-Atlantische vikingtocht."},
- {plek:"Landnámssetur", info:"De landname en de Egilssaga, elk als aparte tentoonstelling met audiogids in het Nederlands of Engels."},
- {plek:"Þingvellir", info:"Vergaderplaats van het Alþingi vanaf 930 — het politieke hart van de vikingtijd in IJsland."},
- {plek:"Sólfar", info:"Géén vikingschip, ondanks de reputatie. Meegenomen om verwarring te voorkomen."},
- {plek:"Árbæjarsafn", info:"Geen vikingtijd, maar wel een gereconstrueerde turfhoeve die de bouwtraditie toont die uit die periode stamt."}
+// Standaardlijst omschrijvingen (type werkzaamheid) – aanvulbaar via de dropdown
+const DEFAULT_OMSCHRIJVINGEN = [
+  {id:1,  tekst:'E-mail',                    groep:'Contact & overleg'},
+  {id:2,  tekst:'Telefoon',                  groep:'Contact & overleg'},
+  {id:3,  tekst:'Intern overleg',            groep:'Contact & overleg'},
+  {id:4,  tekst:'Extern overleg',            groep:'Contact & overleg'},
+  {id:5,  tekst:'Werfvergadering',           groep:'Contact & overleg'},
+  {id:6,  tekst:'Werfrondgang',              groep:'Contact & overleg'},
+  {id:7,  tekst:'Projectopvolging',          groep:'Taken'},
+  {id:8,  tekst:'Planning',                  groep:'Taken'},
+  {id:9,  tekst:'Administratie',             groep:'Taken'},
+  {id:10, tekst:'Rapportage',                groep:'Taken'},
+  {id:11, tekst:'Bestek opstellen/aanpassen',groep:'Taken'},
+  {id:12, tekst:'Budgetopvolging',           groep:'Taken'},
+  {id:13, tekst:'Facturatie',                groep:'Taken'},
+  {id:14, tekst:'Meer-/minderwerken',        groep:'Taken'},
+  {id:15, tekst:'Nazicht',                   groep:'Taken'},
 ];
+let omschrijvingen = DEFAULT_OMSCHRIJVINGEN.map(o=>({...o}));
 
-/* ---------- laag 4: Best of Reykjavík (The Reykjavík Grapevine) ---------- */
-const GV = [
- // eten
- {n:"Skál!", k:"eten", pr:"Beste restaurant van het jaar", g:"Njálsgata 1, Reykjavík", ll:[64.1432,-21.9248],
-  a:"Njálsgata 1", d:"Bekroonde bar-bistro met innovatieve IJslandse gerechten: seizoensgebonden kleine borden om te delen, natuurwijn. Michelin Bib Gourmand 2019. LET OP: na zeven jaar in de Hlemmur-foodhal verhuisd naar Njálsgata 1 — ga dus niet naar Hlemmur.", ok:true},
- {n:"Le Kock", k:"eten", pr:"Beste burger", g:"Tryggvagata 12, Reykjavík", ll:[64.1489,-21.9430],
-  a:"Tryggvagata 12", d:"Al jaren onverslaanbaar voor ambachtelijke burgers. Bakkerij Deig zit in hetzelfde pand.", ok:true},
- {n:"Reykjavík Roasters — Kárastígur", k:"eten", pr:"Koffiebranderij, sinds 2008", g:"Kárastígur 1, Reykjavík", ll:[64.1436,-21.9280],
-  a:"Kárastígur 1, bij Hallgrímskirkja", d:"De oorspronkelijke zaak, geopend eind 2008 als Kaffismiðja Íslands en in 2013 hernoemd. Het pand uit 1929 was vroeger half kruidenierswinkel, half melkwinkel waar je skyr per gewicht kocht. Klein, weinig zitplaatsen — vooral afhalen.",
-  o:"Dagelijks 7–18u", u:"https://reykjavikroasters.is/en/", ok:true},
- {n:"Reykjavík Roasters — Brautarholt", k:"eten", pr:"Koffiebranderij met brew bar", g:"Brautarholt 2, Reykjavík", ll:[64.1400,-21.9090],
-  a:"Brautarholt 2, 105 Reykjavík", d:"Tweede zaak, open sinds augustus 2015 in de oude muziekwinkel van Japis. Brew bar met wisselende koffies en thee, met de hand gezet per bestelling. Ruim, veel zitplaatsen, ontbijt en gebak.",
-  o:"Dagelijks 7–18u", u:"https://reykjavikroasters.is/en/", ok:true},
- {n:"Reykjavík Roasters — Ásmundarsalur", k:"eten", pr:"Koffie in de galerie", g:"Freyjugata 41, Reykjavík", ll:[64.1420,-21.9280],
-  a:"Freyjugata 41, in Ásmundarsalur", d:"Derde filiaal, op de begane grond van de kunsthal Ásmundarsalur met een terras. Koffie en tentoonstelling in één bezoek.",
-  o:"Ma–vr 8.30–16u · za–zo 9–17u", u:"https://reykjavikroasters.is/en/", ok:true},
- {n:"Deig", k:"eten", pr:"Voor vroege vogels", g:"Tryggvagata 12, Reykjavík", ll:[64.1489,-21.9430],
-  a:"Tryggvagata 12, in Le Kock", d:"Donuts, bagels en bagelsandwiches met Amerikaanse inslag, in hetzelfde pand als Le Kock. Een van de goedkoopste koffies van de stad; op weekdagen na 10u het Poorman-menu (bagel met roomkaas, gebakje en drank).",
-  u:"https://deig.is", ok:true},
- {n:"BakaBaka", k:"eten", pr:"Beste bakkerij", g:"Bankastræti 2, Reykjavík", ll:[64.1470,-21.9350],
-  a:"Bankastræti 2", d:"Uitstekende lokale bakkerij en ontbijtadres: zuurdesem, kardemombroodjes en croissants, in het huis van de allereerste bakkerij van IJsland (1834). Vanaf 17u pizzeria en wijnbar.", ok:true},
- {n:"Skreið", k:"eten", pr:"Beste nieuwkomer", g:"Laugavegur 4, Reykjavík", ll:[64.1471,-21.9328],
-  a:"Laugavegur 4", d:"Sfeervolle culinaire hotspot in het centrum. Vín, tapas & verslun: Baskische keuken in een oud houten huis, kleine gerechten om te delen. Bekend om de Baskische cheesecake.",
-  o:"Ma–di 17–23u · wo–do 15–23u · vr–za 15–24u · zo 15–23u", u:"https://skreid.is/", ok:true},
- {n:"Kaffi Laugalækur", k:"eten", pr:"Beste verborgen parel", g:"Laugarnesvegur 74a, Reykjavík", ll:[64.1447,-21.8965],
-  a:"Laugarnesvegur 74a, Laugarnes", d:"Populaire buurtspot in wijk 105, geliefd bij gezinnen om de zuurdesempizza\u2019s (flatbakes). Buurtcafé en gastrobar sinds 2016, ingrediënten rechtstreeks van de boer; soep, salades en veel vegan opties. Om de hoek van het grote zwembad Laugardalslaug.",
-  o:"Zo–ma 10–22u · di–za 10–23u; keuken sluit om 21u", u:"https://www.kaffilaugalaekur.is/", ok:true},
- {n:"La Poblana", k:"eten", pr:"Beste vegan opties", g:"Laugavegur 12, Reykjavík", ll:[64.1428,-21.9219],
-  a:"Laugavegur 12, tweede verdieping", d:"Tacos in de stijl van Mexico-Stad, met IJslandse groenten en kruiden. Begonnen in 2017 in Hlemmur Mathöll, sinds kort op Laugavegur 12.",
-  o:"Zo–do 12–21u · vr–za 12–22u", u:"https://www.lapoblana.is/", ok:true},
- // drinken
- {n:"Skúli Craft Bar", k:"drank", pr:"Beste speciaalbier", g:"Aðalstræti 9, Reykjavík", ll:[64.1476,-21.9425],
-  a:"Aðalstræti 9", d:"Genoemd naar Skúli Magnússon, stichter van de stad. Veertien wisselende tapkranen en zo'n 130 flesbieren, met nadruk op kleine IJslandse brouwerijen. Terras aan het pleintje dat ooit het eerste kerkhof van Reykjavík was.",
-  o:"Happy hour 12–19u", u:"https://www.skulicraftbar.is", ok:true},
- {n:"Prikið", k:"drank", pr:"Beste instituut", g:"Bankastræti 12, Reykjavík", ll:[64.1466,-21.9327],
-  a:"Bankastræti 12", d:"Het oudste koffiehuis van Reykjavík, open sinds 1951. Overdag koffie en een goede burger, 's avonds hiphop met lokale dj's. In het weekend lange rijen.",
-  o:"Happy hour 16–20u", u:"https://www.prikid.is", ok:true},
- // winkelen
- {n:"Handprjónasamband Íslands", k:"winkel", pr:"Beste lopapeysa", g:"Skólavörðustígur 19, Reykjavík", ll:[64.1444,-21.9269],
-  a:"Skólavörðustígur 19", d:"Opgericht in november 1977 door honderden breiers, vooral vrouwen, die hun werk voortaan zelf wilden verkopen. Alles met de hand gebreid uit IJslandse wol. Tweede winkel op Borgartún 31.",
-  o:"Ma–vr 10–18u · za 11–17u · zo 8–16u", u:"https://handknitted.is/", ok:true},
- {n:"Smekkleysa", k:"winkel", pr:"Beste platenzaak", g:"Hverfisgata 32, Reykjavík", ll:[64.1462,-21.9315],
-  a:"Hverfisgata 32 (ook via Hjartatorg)", d:"Bad Taste, het label uit 1986 van o.a. Björk en de Sugarcubes. Platen beneden, café boven, soms concerten.", ok:true},
- {n:"Kormákur & Skjöldur", k:"winkel", pr:"Beste design & kleding", g:"Laugavegur 59, Reykjavík", ll:[64.1436,-21.9243],
-  a:"Laugavegur 59 (kelder van Kjörgarður)", d:"Herrafataverslun Kormáks & Skjaldar: klassieke herenmode en IJslandse tweedkleding, sinds 1996 in de kelder. Pakken, hemden, jassen. Voelt aan als een tijdcapsule; er is zelfs een kapper in de zaak.",
-  o:"Ma–za 11–18u · zo 12–17u", u:"https://herrafataverslun.is/en/pages/about-us-en", ok:true},
- {n:"Góði Hirðirinn", k:"winkel", pr:"Beste vintage", g:"Köllunarklettsvegur 1, Reykjavík", ll:[64.1490,-21.8790],
-  a:"Köllunarklettsvegur 1, 104 Reykjavík", d:"Kringloopwarenhuis van afvalbedrijf SORPA; de opbrengst gaat naar goede doelen. LET OP: verhuisd — de winkels aan Fellsmúli en Hverfisgata zijn gesloten en samengevoegd in de oude kartonfabriek aan Köllunarklettsvegur, twee keer zo groot als vroeger.",
-  u:"https://godihirdirinn.is/", ok:true}
-];
-const GVK = {eten:{l:"Eten",e:"🍽️"},drank:{l:"Bar",e:"🍻"},winkel:{l:"Winkel",e:"🛍️"}};
+// Eerder gebruikte toelichtingen – wordt automatisch aangevuld bij het opslaan
+let toelichtingen = [];
 
-/* ---------- laag 6: lokale brouwerijen ---------- */
-const BIER = [
- {n:"Bryggjan Brugghús", g:"Grandagarður 8, Reykjavík", ll:[64.1524,-21.9490],
-  a:"Grandagarður 8, oude haven", d:"Zelfstandige brouwerij, bistro en bar aan de oude haven, sinds 2015. Twaalf tapkranen met bier dat rechtstreeks uit de eigen ketels komt, en uitzicht op de jachthaven. Er zijn rondleidingen van drie uur met proeverij en diner. Op wandelafstand van jullie logement.",
-  u:"https://bryggjanbrugghus.is"},
- {n:"Ægir Brugghús — Grandi", g:"Eyjarslóð 5, Reykjavík", ll:[64.1548,-21.9580],
-  a:"Eyjarslóð 5, Grandi", d:"Brouwerij uit 2017 in de Grandi-wijk. Naast het eigen bier brouwen ze ook voor andere labels en verhuren ze de installatie aan brouwers zonder eigen ketel.",
-  u:"https://www.aegirbrugghus.is/en"},
- {n:"Ægir 101 taproom", g:"Laugavegur 2, Reykjavík", ll:[64.1470,-21.9337],
-  a:"Laugavegur 2, hoek Skólavörðustígur", d:"De proeflokaal van Ægir in het centrum, met het volledige assortiment op de kaart. Tweede taproom in Hafnarfjörður.",
-  u:"https://www.aegirbrugghus.is/en"},
- {n:"RVK Brewing Co", g:"Skipholt 33, Reykjavík", ll:[64.1382,-21.8988],
-  a:"Skipholt 33, 105 Reykjavík", d:"Opgericht door Siggi, die na jaren in de New Yorkse financiële sector voor bier koos. Brouwerij met taproom; groepen kunnen een proeverij boeken.",
-  o:"Zo–wo 15–22u · do 13–23u · vr–za 13–24u", u:"https://www.rvkbrewing.com/"},
- {n:"Borg Brugghús", g:"Grjótháls 7, Reykjavík", ll:[64.1130,-21.8100],
-  a:"Grjótháls 7–11, industriezone Árbær", d:"De bekendste IJslandse ambachtelijke brouwerij (Úlfur, Garún, Snorri), onderdeel van Ölgerðin. Ligt in een industriezone ver buiten het centrum — hun bier drink je makkelijker in een bar in de stad.",
-  u:"https://borgbrugghus.is"},
- {n:"Kaldi Bar", g:"Laugavegur 20b, Reykjavík", ll:[64.1450,-21.9284],
-  a:"Laugavegur 20b", d:"Café van brouwerij Kaldi uit Árskógssandur in het noorden, de eerste microbrouwerij van IJsland (2006). Alle Kaldi-bieren op tap.",
-  u:"https://kaldibar.is"}
-];
+let nextId=1, nextUserId=2, nextKlantId=4, nextProjId=15, nextOmschrId=16, nextToelId=1;
+let currentUserId=null, lastUserId=null;
+const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
 
-/* ---------- laag 7: bushaltes (Strætó + Flybus) ---------- */
-/* Bordje zoals op de bus: lijnnummer + eindhalte. De exacte tekst op het bord publiceert Strætó niet;
-   de eindhalten komen uit de routepagina's op straeto.is. */
-const bord=(nr,naar,extra,halte)=>'<div class="bordrij"><span class="bord"><b>'+nr+'</b> '+naar+'</span>'+
-  '<span class="bordx">'+(halte?'<b>'+halte+'</b>':'')+(halte&&extra?' · ':'')+(extra||'')+'</span></div>';
-const bordenHtml=a=>a.map(x=>bord(x[0],x[1],x[2],x[3])).join('');
-/* Posities met ok:false zijn bij benadering getekend; controleer de exacte halte in de planner van straeto.is / flybus.is */
-const BUS = [
- {id:"kef-s", n:"KEF Komur — instappen lijn 55", t:"s", ll:[63.9853,-22.6040], sub:"Lijn 55 naar Reykjavík",
-  a:"Keflavík Airport, aankomstzijde", ok:false,
-  d:"Sinds 1 okt 2026 vertrekt lijn 55 naar Reykjavík bij de nieuwe halte KEF Komur, op een aparte plek aan de aankomstzijde. De looproute vanaf de terminal is overdekt. Kjóavellir is nu de halte van lijn 89 en niet meer van lijn 55.",
-  reg:"Vr 6 nov: 16:54 (BSÍ 18:06) · 17:54 (Fjörður 18:42) · 18:54 (Fjörður 19:42). contactloos of bij de chauffeur.",
-  bord:[["55","BSÍ","rit die doorrijdt tot BSÍ"],["55","Fjörður","rit die in Hafnarfjörður eindigt"]],
-  u:"https://www.straeto.is/skipuleggja-ferd/ferdir-um-leifsstod"},
- {id:"kef-b", n:"KEF Brottfarir — uitstappen lijn 55", t:"s", ll:[63.9851,-22.6058], sub:"Lijn 55 uit Reykjavík stopt hier",
-  a:"Keflavík Airport, vertrekzijde (bij de terminal)", ok:false,
-  d:"Lijn 55 uit Reykjavík zet je hier af, op dezelfde plek als de vliegtuigbussen. Instappen kan hier niet. Aurora Hotel ligt ± 100 m verderop. Nieuw sinds 1 okt 2026.",
-  reg:"Di 10 nov: 55 vanaf BSÍ om 16:28 (KEF 17:34), 17:28 (KEF 18:34) of 18:28 (KEF 19:34).",
-  bord:[["55","KEF – Airport","richting Keflavík"]],
-  u:"https://www.stjornarradid.is/frettir/grein/2026-09-30-umbaetur-a-adkomu-og-adstodu-fyrir-almenningsvagna-a-keflavikurflugvelli/"},
- {id:"kef-f", n:"KEF — Flybus (aankomsthal)", t:"f", ll:[63.9846,-22.6060], sub:"Flybus naar BSÍ",
-  a:"Keflavík Airport, buiten de aankomsthal", ok:false,
-  d:"De Flybus staat buiten het terminalgebouw en vertrekt ± 35 tot 45 min na elke aankomende vlucht. Het ticket vanaf KEF is flexibel: je mag elke bus nemen.",
-  reg:"Rit ± 45 min tot BSÍ.",
-  bord:[["Flybus","Reykjavík BSÍ","richting Reykjavík · bordtekst niet bevestigd"]],
-  u:"https://flybus.is/plan-your-trip/prices/"},
- {id:"bsi", n:"BSÍ Bus Terminal", t:"sf", ll:[64.1383,-21.9372], g:"Vatnsmýrarvegur 10, Reykjavík", sub:"Eindhalte lijn 55 + Flybus",
-  a:"Vatnsmýrarvegur 10", ok:true,
-  d:"Hier komt de Flybus aan en eindigen de vijf doorgaande ritten van lijn 55. Naar Mýrargata 18: stadsbus lijn 14 of 15 (volgens Moovit, geschat 10 tot 15 min, niet bevestigd), te voet ± 25 min (1,7 km) of taxi ± 5 min. Volgens flybus.is is er een Flybus-loket (06:00–22:00) en bagageopslag.",
-  reg:"Terug naar KEF vanaf BSÍ: Strætó 55 om 16:28, 17:28 of 18:28 (laatste doorgaande rit) · Flybus om de 30 tot 60 min tot 22:30.",
-  bord:[["55","KEF – Airport","richting Keflavík"],["Flybus","KEF Airport","bordtekst niet bevestigd; personeel wijst de juiste bus aan"],["14","Grandi","richting appartement (afgeleid)","Uitstappen: halte Mýrargata"],["15","Vesturbær","richting appartement (afgeleid)","Uitstappen: halte Mýrargata"]],
-  u:"https://flybus.is/plan-your-trip/bsi-bus-terminal/"},
- {id:"fjo", n:"Fjörður (Hafnarfjörður)", t:"s", ll:[64.0677,-21.9633], sub:"Overstap lijn 55 ↔ lijn 1",
-  a:"Hafnarfjörður", ok:false,
-  d:"Veel ritten van lijn 55 beginnen en eindigen hier in plaats van in BSÍ. Van hieruit rijdt lijn 1 naar het centrum van Reykjavík.",
-  reg:"6 nov: 17:54-rit hier om 18:42, 18:54-rit om 19:42. 10 nov: 55 vertrekt hier om 19:50 naar KEF (aankomst 20:33).",
-  bord:[["1","Skúlagata","richting centrum Reykjavík","Uitstappen: Skúlagata, ± 15 min lopen naar het appartement"],["55","KEF – Airport","richting Keflavík"]],
-  u:"https://www.straeto.is/skipuleggja-ferd/timatoflur/hofudborgarsvaedid/leid-1"},
- {id:"sku", n:"Skúlagata — lijn 1", t:"s", ll:[64.1490,-21.9215], sub:"Stadshalte lijn 1 · ± 15 min lopen",
-  a:"Skúlagata, Reykjavík", ok:false,
-  d:"Volgens de eerdere planning stap je hier in of uit lijn 1 en wandel je ± 15 min naar het appartement. De rittijd van lijn 1 tussen Fjörður en Skúlagata is niet bevestigd (schatting 35 tot 45 min).",
-  reg:"Controleer de verbinding voor 6 en 10 nov in de planner op straeto.is.",
-  bord:[["1","Hfj. Skarðshlíð","richting Hafnarfjörður","Instappen: Skúlagata, ± 15 min lopen van het appartement"]],
-  u:"https://www.straeto.is/skipuleggja-ferd/timatoflur/hofudborgarsvaedid/leid-1"},
- {id:"myr", n:"Mýrargata — halte bij het logement", t:"s", ll:[64.1508,-21.9452], sub:"Lijnen 14, 13, 15 (volgens Moovit)",
-  a:"Mýrargata, Reykjavík", ok:false,
-  d:"Halte op 1 tot 2 min lopen van Mýrargata 18. Volgens Moovit stoppen hier de lijnen 14, 13 en 15; lijn 14 en 15 stoppen ook bij BSÍ. Dat lijn 1 hier stopt is niet bevestigd.",
-  reg:"Stadsbus vanaf BSÍ: lijn 14 of 15 (geschat 10 tot 15 min, controleer rittijd en frequentie in de planner op straeto.is).",
-  bord:[["14","Grandi","komt uit BSÍ (afgeleid)","Uitstappen: halte Mýrargata, 1 tot 2 min van nr. 18"],["15","Vesturbær","komt uit BSÍ (afgeleid)","Uitstappen: halte Mýrargata, 1 tot 2 min van nr. 18"]],
-  u:"https://www.straeto.is/skipuleggja-ferd"},
- {id:"fbp", n:"Flybus+ halte — Sjóminjasafnið", t:"f", ll:[64.1525,-21.9488], sub:"Flybus+ ophalen en afzetten",
-  a:"Grandagarður 8, bij het Maritiem Museum", ok:false,
-  d:"Toeristenhalte 15 (Vesturbugt, Mýrargata) is volgens Guide to Iceland tijdelijk verplaatst naar de voorkant van het Sjóminjasafnið, ook halte 17 genoemd. Controleer de actuele halte bij het boeken op flybus.is.",
-  reg:"Op 6 nov zet de Flybus+-minibus je hier af.",
-  bord:[["Flybus+","BSÍ","minibus; bordtekst niet bevestigd","Ophalen en afzetten: halte Sjóminjasafnið, ± 200 m van het appartement"]],
-  u:"https://busstop.is/"},
- {id:"aur", n:"Aurora Hotel (Blikavöllur 2)", t:"h", ll:[63.9862,-22.6068], sub:"Verblijf 10 → 11 nov",
-  a:"Blikavöllur 2, 235 Reykjanesbær", ok:false,
-  d:"± 100 m van de KEF-terminal. Vanaf de terminal te voet via het vertrekgebied. Opgegeven aankomsttijd 21:00, telefoon +354 595 1900. Vlucht HV9122 vertrekt wo 11 nov om 10:20, rond 08:00 inchecken."}
-];
+let fbListenerActive = false;
 
-/*PURE-START*/
-/* tijdtabel lijn 55, werkdagen, geldig vanaf 02.01.2026 (straeto.is)
-   K = vertrek KEF, aankomst Fjörður, aankomst BSÍ (null = rit eindigt in Fjörður)
-   B = vertrek BSÍ (null = rit begint in Fjörður), vertrek Fjörður, aankomst KEF */
-const T55K=[["06:27","07:16","07:39"],["07:54","08:43","09:06"],["09:54","10:42",null],["11:54","12:42",null],["13:54","14:42",null],["14:54","15:43","16:06"],["15:54","16:43","17:06"],["16:54","17:43","18:06"],["17:54","18:42",null],["18:54","19:42",null],["20:54","21:42",null],["22:54","23:42",null]];
-const T55B=[["06:28","06:50","07:34"],["08:28","08:50","09:34"],[null,"10:50","11:33"],[null,"12:50","13:33"],[null,"14:50","15:33"],[null,"15:50","16:33"],["16:28","16:50","17:34"],["17:28","17:50","18:34"],["18:28","18:50","19:34"],[null,"19:50","20:33"],[null,"21:50","22:33"],[null,"23:50","00:33"]];
-const tm=s=>{const p=s.split(':');return (+p[0])*60+(+p[1]);};
-const ts=n=>{n=((Math.round(n)%1440)+1440)%1440;return String(Math.floor(n/60)).padStart(2,'0')+':'+String(n%60).padStart(2,'0');};
-function mono(r){let p=-1;return r.map(x=>{if(x==null) return null;let v=tm(x);while(v<p) v+=1440;p=v;return v;});}
-const RIT_K=T55K.map(mono), RIT_B=T55B.map(mono);
-
-/* Alleen handbagage: ± 25 min van landing tot buiten bij de halte */
-const NAAR_BUITEN=25;
-
-/* Aankomst op KEF: welke Strætó-ritten haal je, en wanneer ben je bij het appartement?
-   Vanaf BSÍ: te voet (± 25 min), stadsbus lijn 14 of 15 (geschat 10 tot 15 min rit + wachttijd) of taxi.
-   Vanaf Fjörður: lijn 1 naar Skúlagata (geschat 35 tot 45 min) en ± 15 min lopen. */
-function berekenAankomst(landStr){
-  const land=tm(landStr), buiten=land+NAAR_BUITEN, ritten=[];
-  RIT_K.forEach(r=>{
-    if(r[0]<buiten+5) return;
-    const bsi=r[2]!=null, aan=bsi?r[2]:r[1];
-    ritten.push({dep:r[0],halte:bsi?'BSÍ':'Fjörður',aan:aan,wacht:r[0]-buiten,bsi:bsi,
-      voet:bsi?aan+25:null,
-      stad:bsi?[aan+17,aan+32]:null,
-      taxi:bsi?aan+10:null,
-      thuis:bsi?null:[aan+53,aan+63],
-      laat:!bsi&&aan>=21*60});
-  });
-  return {buiten:buiten, ritten:ritten.slice(0,4),
-    flybus:{vertrek:[land+35,land+45], bsi:[land+80,land+90], voet:[land+105,land+115],
-            stad:[land+97,land+122], plus:[land+115,land+130]}};
+function showSyncBar(msg, type='') {
+  const bar = document.getElementById('syncBar');
+  bar.textContent = msg;
+  bar.className = 'sync-bar show' + (type ? ' ' + type : '');
+  if (type === 'ok' || type === 'err') {
+    setTimeout(() => bar.classList.remove('show'), 3000);
+  }
 }
 
-/* Terugweg naar het hotel bij KEF, vertrek vanaf BSÍ.
-   Ritten die in Fjörður starten (BSÍ-kolom leeg) vallen weg. Vertrek appartement:
-   te voet naar BSÍ = 25 min + marge (38 min), stadsbus lijn 14 of 15 = 2 min lopen + wachttijd + rit + marge (50 min). */
-function berekenTerug(vanStr,totStr){
-  const van=tm(vanStr), tot=tm(totStr), ritten=[];
-  RIT_B.forEach(r=>{
-    if(r[0]==null) return;
-    const kef=r[2], hotel=kef+6, dep=r[0];
-    if(hotel<van-150||hotel>tot+150) return;
-    ritten.push({dep:dep,kef:kef,hotel:hotel,
-      status:hotel<van?'vroeg':(hotel>tot?'laat':'ok'),
-      wegVoet:dep-38, wegBus:dep-50});
-  });
-  const bsi=[van-50,tot-50];
-  return {ritten:ritten, geenInVenster:!ritten.some(x=>x.status==='ok'),
-    flybus:{bsi:bsi, ophalen:[bsi[0]-30,bsi[1]-30], wegVoet:[bsi[0]-38,bsi[1]-38], wegBus:[bsi[0]-50,bsi[1]-50]}};
-}
-/*PURE-END*/
-
-const THUIS=[64.1512,-21.9470];
-const FIJN = window.matchMedia('(pointer:fine)').matches;
-const CACHE='rvk-coords-v2';
-let vertrek=THUIS.slice(), vertrekNaam='Mýrargata 18';
-
-/* Leaflet laden met reservebron; pas daarna starten */
-function laadLeaflet(klaar){
-  if(window.L) return klaar();
-  const bronnen=['https://unpkg.com/leaflet@1.9.4/dist/leaflet.js',
-                 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.js'];
-  (function volgende(i){
-    if(i>=bronnen.length){
-      document.getElementById('status').textContent=
-        'De kaartbibliotheek kon niet geladen worden. Controleer de verbinding en herlaad de pagina.';
-      document.getElementById('kaart').style.display='none';
-      document.getElementById('sheet').classList.add('open');
-      return;
-    }
-    const s=document.createElement('script');
-    s.src=bronnen[i]; s.async=false;
-    s.onload=klaar; s.onerror=()=>volgende(i+1);
-    document.head.appendChild(s);
-  })(0);
-}
-if(document.readyState==='loading')
-  document.addEventListener('DOMContentLoaded',()=>laadLeaflet(start));
-else laadLeaflet(start);
-
-function start(){
-/* ---------- kaart ---------- */
-const kaart=L.map('kaart',{
-  preferCanvas:true, zoomControl:FIJN, attributionControl:true,
-  zoomSnap:.5, tap:false
-}).setView([64.1465,-21.9400],13);
-
-const OSM_ATTR='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>';
-const tegelOpties={maxZoom:19, minZoom:8, updateWhenIdle:false, updateWhenZooming:false, keepBuffer:2};
-let tegels=L.tileLayer('https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png',
-  Object.assign({},tegelOpties,{attribution:OSM_ATTR+' &copy; <a href="https://carto.com/attributions">CARTO</a>'})).addTo(kaart);
-
-/* valt CARTO weg, dan de standaardtegels van OpenStreetMap */
-let fouten=0, gewisseld=false;
-tegels.on('tileerror',()=>{
-  if(gewisseld || ++fouten<5) return;
-  gewisseld=true;
-  kaart.removeLayer(tegels);
-  tegels=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',
-    Object.assign({},tegelOpties,{attribution:OSM_ATTR})).addTo(kaart);
-  tegels.on('tileerror',()=>melding('Achtergrondkaart niet bereikbaar — markers en lijst werken wel'));
-  melding('Achtergrondkaart via OpenStreetMap');
-});
-
-const laagMusea=L.layerGroup().addTo(kaart);
-const laagExpo =L.layerGroup().addTo(kaart);
-const laagVik  =L.layerGroup();
-const laagEten =L.layerGroup();
-const laagWink =L.layerGroup();
-const laagBier =L.layerGroup();
-const laagBus  =L.layerGroup();
-const laagAir  =L.layerGroup();
-
-/* ---------- helpers ---------- */
-const esc=s=>String(s).replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-function afstand(a,b){
-  const R=6371,r=Math.PI/180,dLat=(b[0]-a[0])*r,dLon=(b[1]-a[1])*r;
-  const x=Math.sin(dLat/2)**2+Math.cos(a[0]*r)*Math.cos(b[0]*r)*Math.sin(dLon/2)**2;
-  return 2*R*Math.asin(Math.sqrt(x));
-}
-const icoon=(kleur,thuis)=>L.divIcon({className:'',
-  html:'<div class="marker'+(thuis?' thuis':'')+'"><i style="background:'+kleur+'"></i></div>',
-  iconSize:[26,26],iconAnchor:[13,13]});
-
-function popupHTML(m){
-  const L2=[];
-  if(m.u) L2.push('<a href="'+m.u+'" target="_blank" rel="noopener">Officiële website'+(m.vfl?' †':'')+' ↗</a>');
-  if(m.v) L2.push('<a href="https://visitreykjavik.is/service/'+m.v+'" target="_blank" rel="noopener">Visit Reykjavík ↗</a>');
-  L2.push('<a href="https://www.google.com/maps/dir/?api=1&destination='+m.ll[0]+','+m.ll[1]+'" target="_blank" rel="noopener">Route hierheen ↗</a>');
-  return '<div class="pop-cat">'+CATS[m.c].label+' · '+m.km.toFixed(1)+' km</div>'+
-   '<div class="pop-naam">'+esc(m.n)+'</div>'+
-   (m.isl?'<div class="pop-isl">'+esc(m.isl)+'</div>':'')+
-   '<div class="pop-adres">'+esc(m.a)+'</div><div>'+esc(m.d)+'</div>'+
-   (m.t?'<div class="pop-expo"><strong>6–11 nov 2026</strong><br>'+esc(m.t)+'</div>':'')+
-   (m.w?'<div class="pop-winter">'+esc(m.w)+'</div>':'');
-}
-const popOpties={maxWidth:Math.min(320,innerWidth-48),autoPanPadding:[20,90]};
-
-/* ---------- markers ---------- */
-M.forEach(m=>{
-  m.km=afstand(vertrek,m.ll);
-  m.marker=L.marker(m.ll,{icon:icoon(CATS[m.c].kleur),title:m.n})
-    .addTo(laagMusea).bindPopup(()=>popupHTML(m),popOpties);
-});
-const thuisMarker=L.marker(THUIS,{icon:icoon('#171A1F',true),title:'Logement'})
-  .addTo(laagMusea).bindPopup('<div class="pop-cat">Vertrekpunt</div><div class="pop-naam">Mýrargata 18</div>',popOpties);
-
-function ring(m,kleur,radius,dash,tip,html){
-  const c=L.circleMarker(m.ll,{radius,color:kleur,weight:2.2,fill:false,dashArray:dash,interactive:true})
-    .bindPopup(html,popOpties);
-  if(FIJN) c.bindTooltip(tip,{direction:'top',offset:[0,-radius]});
-  return c;
-}
-EXPO.forEach(e=>{
-  const m=M.find(x=>x.n.includes(e.plek)); if(!m) return; e.m=m;
-  e.ring=ring(m,'#B36A15',14,e.zeker?null:'4 4',e.titel,
-    '<div class="pop-cat">Tentoonstelling · '+(e.zeker?'bevestigd':'nog te bevestigen')+'</div>'+
-    '<div class="pop-naam">'+esc(e.titel)+'</div><div class="pop-isl">'+esc(m.n)+'</div>'+
-    '<div class="pop-adres">'+esc(e.periode)+'</div><div>'+esc(e.info)+'</div>'+
-    '<div class="pop-links"><a href="'+e.url+'" target="_blank" rel="noopener">Programma ↗</a></div>').addTo(laagExpo);
-});
-VIKING.forEach(v=>{
-  const m=M.find(x=>x.n.includes(v.plek)); if(!m) return; v.m=m;
-  v.ring=ring(m,'#6B3FA0',20,null,'Vikingtijd: '+m.n,
-    '<div class="pop-cat">Vikingtijd &amp; landname</div><div class="pop-naam">'+esc(m.n)+'</div>'+
-    '<div class="pop-adres">'+esc(m.a)+'</div><div>'+esc(v.info)+'</div>').addTo(laagVik);
-});
-
-/* Best of Reykjavík-markers */
-GV.forEach(p=>{
-  p.km=afstand(vertrek,p.ll);
-  p.marker=L.marker(p.ll,{
-      icon:L.divIcon({className:'',html:'<div class="gv" style="border-color:'+(p.k==='winkel'?'#2F7A6B':'#B03030')+'">'+GVK[p.k].e+'</div>',iconSize:[32,32],iconAnchor:[16,16]}),
-      title:p.n})
-    .addTo(p.k==='winkel'?laagWink:laagEten)
-    .bindPopup(()=>'<div class="pop-cat">Best of Reykjavík · '+GVK[p.k].l+'</div>'+
-      '<div class="pop-naam">'+esc(p.n)+'</div>'+
-      '<div class="pop-isl">'+esc(p.pr)+'</div>'+
-      '<div class="pop-adres">'+esc(p.a)+' · '+p.km.toFixed(1)+' km</div>'+
-      '<div>'+esc(p.d)+'</div>'+
-      (p.o?'<div class="pop-expo">'+esc(p.o)+'</div>':'')+
-      (p.ok?'':'<div class="pop-winter">Adres niet geverifieerd — controleer de locatie voor je erheen gaat.</div>')+
-      '<div class="pop-links">'+
-      (p.u?'<a href="'+p.u+'" target="_blank" rel="noopener">Officiële website ↗</a>':'')+
-      '<a href="https://www.google.com/maps/dir/?api=1&destination='+p.ll[0]+','+p.ll[1]+'" target="_blank" rel="noopener">Route hierheen ↗</a>'+
-      '<a href="https://grapevine.is/best-of-reykjavik/" target="_blank" rel="noopener">Best of Reykjavík ↗</a></div>',popOpties);
-});
-
-/* Brouwerijen */
-BIER.forEach(b=>{
-  b.km=afstand(vertrek,b.ll);
-  b.marker=L.marker(b.ll,{
-      icon:L.divIcon({className:'',html:'<div class="gv" style="border-color:#7A5A1E">🍺</div>',iconSize:[32,32],iconAnchor:[16,16]}),
-      title:b.n})
-    .addTo(laagBier)
-    .bindPopup(()=>'<div class="pop-cat">Lokale brouwerij</div>'+
-      '<div class="pop-naam">'+esc(b.n)+'</div>'+
-      '<div class="pop-adres">'+esc(b.a)+' · '+b.km.toFixed(1)+' km</div>'+
-      '<div>'+esc(b.d)+'</div>'+
-      (b.o?'<div class="pop-expo">'+esc(b.o)+'</div>':'')+
-      '<div class="pop-links">'+
-      (b.u?'<a href="'+b.u+'" target="_blank" rel="noopener">Officiële website ↗</a>':'')+
-      '<a href="https://www.google.com/maps/dir/?api=1&destination='+b.ll[0]+','+b.ll[1]+'" target="_blank" rel="noopener">Route hierheen ↗</a></div>',popOpties);
-});
-
-/* ---------- bushaltes en routes (Strætó + Flybus) ---------- */
-const BUSK={
-  s:{e:'🚌',k:'#D98E04',l:'Strætó-halte'},
-  f:{e:'🚍',k:'#2A6F97',l:'Flybus-halte'},
-  sf:{e:'🚏',k:'#171A1F',l:'Strætó + Flybus'},
-  h:{e:'🏨',k:'#171A1F',l:'Bestemming'}
-};
-function busPopup(b){
-  return '<div class="pop-cat">'+BUSK[b.t].l+' · '+b.km.toFixed(1)+' km</div>'+
-    '<div class="pop-naam">'+esc(b.n)+'</div>'+
-    '<div class="pop-adres">'+esc(b.a)+'</div>'+
-    '<div>'+esc(b.d)+'</div>'+
-    (b.reg?'<div class="pop-expo">'+esc(b.reg)+'</div>':'')+
-    (b.bord?'<div class="bordnoot">Bord op de bus</div>'+bordenHtml(b.bord)+'<div class="bordnoot">Lijnnummer en eindhalte volgens straeto.is. De exacte bordtekst is niet gepubliceerd, ga op het nummer af.</div>':'')+
-    (b.ok?'':'<div class="pop-winter">Positie bij benadering — controleer de exacte halte voor je erheen gaat.</div>')+
-    '<div class="pop-links">'+
-    (b.u?'<a href="'+b.u+'" target="_blank" rel="noopener">Informatie ↗</a>':'')+
-    '<a href="https://www.google.com/maps/dir/?api=1&destination='+b.ll[0]+','+b.ll[1]+'" target="_blank" rel="noopener">Route hierheen ↗</a></div>';
-}
-BUS.forEach(b=>{
-  b.km=afstand(vertrek,b.ll);
-  b.marker=L.marker(b.ll,{
-      icon:L.divIcon({className:'',html:'<div class="gv" style="border-color:'+BUSK[b.t].k+'">'+BUSK[b.t].e+'</div>',iconSize:[32,32],iconAnchor:[16,16]}),
-      title:b.n})
-    .addTo(laagBus).bindPopup(()=>busPopup(b),popOpties);
-});
-const lijnenGroep=L.layerGroup().addTo(laagBus);
-const bpos=id=>BUS.find(x=>x.id===id).ll;
-function tekenLijnen(){
-  lijnenGroep.clearLayers();
-  const maak=(pts,kleur,dash,tip)=>{
-    const l=L.polyline(pts,{color:kleur,weight:3,opacity:.8,dashArray:dash}).addTo(lijnenGroep);
-    if(FIJN) l.bindTooltip(tip,{sticky:true});
-  };
-  maak([bpos('kef-s'),bpos('fjo'),bpos('bsi')],'#2A6F97','9 6','Lijn 55 · KEF → Fjörður → BSÍ · hemelsbreed getekend');
-  maak([bpos('fjo'),bpos('sku')],'#D98E04','9 6','Lijn 1 · Fjörður → Skúlagata · hemelsbreed getekend');
-  maak([bpos('bsi'),bpos('myr')],'#D98E04','5 5','Stadsbus lijn 14 of 15 · BSÍ ↔ Mýrargata (volgens Moovit) · hemelsbreed getekend');
-  maak([bpos('bsi'),THUIS],'#6E7684','2 6','Te voet BSÍ ↔ Mýrargata 18 · ± 25 min (1,7 km)');
-  maak([bpos('sku'),THUIS],'#6E7684','2 6','Te voet Skúlagata ↔ Mýrargata 18 · ± 15 min');
-  tekenAir();
-}
-
-/* ---------- laag: Iceland Airwaves, zaterdag 7 nov (jouw avondplan) ---------- */
-/* Adressen volgens icelandairwaves.is/venues. Posities met ok:false zijn bij benadering; de app haalt ze eenmalig op via de adressen. */
-const AIRKLEUR='#C2185B';
-const AIR=[
- {id:'idno',n:'Iðnó',a:'Vonarstræti 3',g:'Vonarstræti 3, Reykjavík',ll:[64.1431,-21.9392],ok:false,
-  d:'Festivalvenue, volledig toegankelijk.'},
- {id:'lemmy',n:'Lemmy',a:'Austurstræti 20',g:'Austurstræti 20, Reykjavík',ll:[64.1468,-21.9407],ok:false,
-  d:'Festivalvenue, volledig toegankelijk. Volgens icelandairwaves.is: vraag naar de zijingang.'},
- {id:'ros',n:'Rosenberg',a:'Naustin (voormalig BIRD)',g:'Naustin, Reykjavík',ll:[64.1487,-21.9428],ok:false,
-  d:'Festivalvenue, volledig toegankelijk. icelandairwaves.is vermeldt alleen "Naustin (former BIRD)", zonder huisnummer: controleer de exacte plek.'},
- {id:'frik',n:'Fríkirkjan',a:'Fríkirkjuvegur 5',g:'Fríkirkjuvegur 5, Reykjavík',ll:[64.1448,-21.9338],ok:false,
-  d:'Festivalvenue, volledig toegankelijk.'},
- {id:'nasa',n:'NASA',a:'Thorvaldsensstræti 2',g:'Thorvaldsensstræti 2, Reykjavík',ll:[64.1478,-21.9407],ok:false,
-  d:'Festivalvenue, volledig toegankelijk.'},
- {id:'city',n:'City Hall (Ráðhús)',a:'Tjarnargata 11',g:'Tjarnargata 11, Reykjavík',ll:[64.1465,-21.9390],ok:false,
-  d:'Festivalvenue, volledig toegankelijk.'}
-];
-/* hoofdplan: negen sets zonder overlap */
-const AIRPLAN=[
- {nr:1,v:'idno', t:'19:00–19:40',act:'GRIMA',gen:'Post-punk'},
- {nr:2,v:'lemmy',t:'19:40–20:20',act:'KOIKOI',gen:'Indie rock / post-punk'},
- {nr:3,v:'ros',  t:'20:30–21:10',act:'Cell7',gen:'Hiphop'},
- {nr:4,v:'idno', t:'21:10–21:40',act:'SUNTRAP',gen:'Elektronisch / psychedelisch'},
- {nr:5,v:'lemmy',t:'21:40–22:20',act:'Heartworms',gen:'Post-punk / gothic rock'},
- {nr:6,v:'lemmy',t:'22:40–23:20',act:'knackered',gen:'Techno / club'},
- {nr:7,v:'ros',  t:'23:30–00:10',act:'BKPM',gen:'Krautrock / post-punk'},
- {nr:8,v:'idno', t:'00:10–00:40',act:'David Bay',gen:'Disco / house'},
- {nr:9,v:'idno', t:'01:00–02:00',act:'Skeler',gen:'Techno'}
-];
-/* Plan B per set */
-const AIRB=[
- {voor:2,v:'frik',t:'19:50–20:30',act:'Arny Margret',gen:'Indie-folk'},
- {voor:3,v:'frik',t:'20:50–21:30',act:'Jamie Woon',gen:'Soul'},
- {voor:4,v:'ros', t:'21:30–22:10',act:'punktò',gen:'Synth-pop / disco'},
- {voor:5,v:'nasa',t:'21:20–22:00',act:'Leith Ross',gen:'Singer-songwriter'},
- {voor:6,v:'frik',t:'22:50–23:30',act:'Ólöf Arnalds',gen:'Singer-songwriter'},
- {voor:6,v:'nasa',t:'22:20–23:00',act:'Róshildur',gen:'Experimenteel'},
- {voor:7,v:'city',t:'23:10–23:50',act:'Kaktus Einarsson',gen:'Singer-songwriter'},
- {voor:8,v:'city',t:'00:10–00:50',act:'The Itch',gen:'Alt-rock'}
-];
-const airV=id=>AIR.find(x=>x.id===id);
-const loopMin=(a,b)=>Math.max(1,Math.round(afstand(a,b)*1.25/4.8*60));
-const AIRPLANLINK='https://claude.ai/artifact/52EE9kafEYQSFETxZaRctZ';
-
-function airPopup(v){
-  const mijn=AIRPLAN.filter(x=>x.v===v.id), alt=AIRB.filter(x=>x.v===v.id);
-  let h='<div class="pop-cat">Iceland Airwaves · zat 7 nov</div><div class="pop-naam">'+esc(v.n)+'</div>'+
-    '<div class="pop-adres">'+esc(v.a)+' · '+v.km.toFixed(1)+' km</div><div>'+esc(v.d)+'</div>';
-  if(mijn.length){
-    h+='<div class="bordnoot">Jouw plan hier</div>';
-    mijn.forEach(x=>{
-      const vol=AIRPLAN.find(y=>y.nr===x.nr+1);
-      const naar=vol&&vol.v!==v.id?' <span class="airnaar">→ '+esc(airV(vol.v).n)+', ± '+loopMin(v.ll,airV(vol.v).ll)+' min lopen</span>':
-                 (vol?' <span class="airnaar">→ blijf hier</span>':'');
-      h+='<div class="airrij"><b>'+x.nr+'</b> <span class="airtijd">'+x.t+'</span> '+esc(x.act)+' <i>'+esc(x.gen)+'</i>'+naar+'</div>';
+async function fbSave() {
+  try {
+    await DOC.set({
+      users, klanten, projects, entries, omschrijvingen, toelichtingen,
+      lastUserId: lastUserId || null,
+      ids: { nextId, nextUserId, nextKlantId, nextProjId, nextOmschrId, nextToelId },
+      updatedAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-  }
-  if(alt.length){
-    h+='<div class="bordnoot">Plan B hier</div>';
-    alt.forEach(x=>{
-      h+='<div class="airrij alt"><b>B'+x.voor+'</b> <span class="airtijd">'+x.t+'</span> '+esc(x.act)+' <i>'+esc(x.gen)+'</i></div>';
-    });
-  }
-  h+='<div class="pop-links"><a href="https://icelandairwaves.is/venues" target="_blank" rel="noopener">Venues ↗</a>'+
-     '<a href="'+AIRPLANLINK+'" target="_blank" rel="noopener">Volledig plan ↗</a>'+
-     '<a href="https://www.google.com/maps/dir/?api=1&destination='+v.ll[0]+','+v.ll[1]+'" target="_blank" rel="noopener">Route hierheen ↗</a></div>';
-  if(!(v.ok||v.exact)) h+='<div class="pop-winter">Positie bij benadering, de app zoekt hem eenmalig op via het adres.</div>';
-  return h;
-}
-AIR.forEach(v=>{
-  v.km=afstand(vertrek,v.ll);
-  v.sub=(AIRPLAN.filter(x=>x.v===v.id).length||'0')+' sets in je plan'+(AIRB.some(x=>x.v===v.id)?' · Plan B':'');
-  v.marker=L.marker(v.ll,{
-      icon:L.divIcon({className:'',html:'<div class="gv" style="border-color:'+AIRKLEUR+'">🎶</div>',iconSize:[32,32],iconAnchor:[16,16]}),
-      title:v.n})
-    .addTo(laagAir).bindPopup(()=>airPopup(v),popOpties);
-});
-const airLijnen=L.layerGroup().addTo(laagAir);
-function tekenAir(){
-  airLijnen.clearLayers();
-  for(let i=0;i<AIRPLAN.length-1;i++){
-    const a=AIRPLAN[i], b=AIRPLAN[i+1];
-    if(a.v===b.v) continue;
-    const va=airV(a.v), vb=airV(b.v);
-    const l=L.polyline([va.ll,vb.ll],{color:AIRKLEUR,weight:3,opacity:.75,dashArray:'6 6'}).addTo(airLijnen);
-    if(FIJN) l.bindTooltip('Set '+a.nr+' → '+b.nr+' · '+va.n+' → '+vb.n+' · ± '+loopMin(va.ll,vb.ll)+' min lopen',{sticky:true});
+    showSyncBar('☁ Opgeslagen in cloud', 'ok');
+  } catch(e) {
+    console.error('Firebase save error:', e);
+    showSyncBar('⚠ Cloud opslaan mislukt – lokaal opgeslagen', 'err');
   }
 }
-/* ---------- laagknoppen ---------- */
-const aanLagen={musea:true,expo:true,vik:false,eten:false,bier:false,wink:false,bus:false,air:false};
-const groepen={musea:laagMusea,expo:laagExpo,vik:laagVik,eten:laagEten,bier:laagBier,wink:laagWink,bus:laagBus,air:laagAir};
-document.querySelectorAll('.tog[data-laag]').forEach(b=>{
-  const g=groepen[b.dataset.laag];
-  if(b.getAttribute('aria-pressed')==='false') kaart.removeLayer(g);
-  b.addEventListener('click',()=>{
-    const aan=b.getAttribute('aria-pressed')==='true';
-    b.setAttribute('aria-pressed',String(!aan));
-    aan?kaart.removeLayer(g):kaart.addLayer(g);
-    aanLagen[b.dataset.laag]=!aan;
-    teken();
-  });
-});
 
-/* ---------- lijst ---------- */
-const lijst=document.getElementById('lijst'), telling=document.getElementById('telling');
-const zoek=document.getElementById('zoek');
-let timer; zoek.addEventListener('input',()=>{clearTimeout(timer);timer=setTimeout(teken,160)});
-
-function teken(){
-  tekenLijnen();
-  const q=zoek.value.trim().toLowerCase();
-  const frag=document.createDocumentFragment();
-  const rijen=[];
-
-  if(aanLagen.musea) M.forEach(m=>rijen.push({
-    naam:m.n, sub:m.a, km:m.km, ic:'🏛️', kleur:CATS[m.c].kleur,
-    merk:(m.t?'<span class="merk expo">●</span>':'')+(VIKING.some(v=>v.m===m)?'<span class="merk vik">◆</span>':'')+(m.w?'<span class="merk winter">❄</span>':''),
-    zoek:m.n+' '+m.isl+' '+m.a+' '+m.d, ll:m.ll, marker:m.marker
-  }));
-  if(aanLagen.bier) BIER.forEach(b=>rijen.push({
-    naam:b.n, sub:b.a, km:b.km, ic:'🍺', kleur:'#7A5A1E', merk:'',
-    zoek:b.n+' '+b.a+' '+b.d, ll:b.ll, marker:b.marker
-  }));
-  if(aanLagen.bus) BUS.forEach(b=>rijen.push({
-    naam:b.n, sub:b.sub, km:b.km, ic:BUSK[b.t].e, kleur:BUSK[b.t].k, merk:'',
-    zoek:b.n+' '+b.a+' '+b.d+' '+b.sub, ll:b.ll, marker:b.marker
-  }));
-  if(aanLagen.air) AIR.forEach(v=>rijen.push({
-    naam:v.n, sub:v.sub, km:v.km, ic:'🎶', kleur:AIRKLEUR, merk:'',
-    zoek:v.n+' '+v.a+' '+v.d+' airwaves '+AIRPLAN.concat(AIRB).filter(x=>x.v===v.id).map(x=>x.act).join(' '), ll:v.ll, marker:v.marker
-  }));
-  GV.forEach(p=>{
-    const laag = p.k==='winkel' ? 'wink' : 'eten';
-    if(!aanLagen[laag]) return;
-    rijen.push({naam:p.n, sub:p.pr, km:p.km, ic:GVK[p.k].e, kleur:p.k==='winkel'?'#2F7A6B':'#B03030',
-      merk:'', zoek:p.n+' '+p.a+' '+p.d+' '+p.pr, ll:p.ll, marker:p.marker});
-  });
-
-  const zichtbaar=rijen.filter(r=>!q||r.zoek.toLowerCase().includes(q));
-  if(q){
-    const set=new Set(zichtbaar.map(r=>r.marker));
-    M.forEach(m=>set.has(m.marker)?m.marker.addTo(laagMusea):laagMusea.removeLayer(m.marker));
-  } else {
-    M.forEach(m=>m.marker.addTo(laagMusea));
-  }
-  zichtbaar.sort((a,b)=>a.km-b.km).forEach(r=>{
-    const b=document.createElement('button');
-    b.className='item'; b.type='button';
-    b.innerHTML='<span class="ico">'+r.ic+'</span>'+
-      '<span class="tekst"><span class="naam">'+esc(r.naam)+r.merk+'</span>'+
-      '<span class="meta"><span class="streep" style="background:'+r.kleur+'"></span>'+esc(r.sub)+'</span></span>'+
-      '<span class="afstand">'+r.km.toFixed(1)+'<small>km</small></span>';
-    b.addEventListener('click',()=>{
-      dicht();
-      kaart.setView(r.ll,16,{animate:true});
-      setTimeout(()=>r.marker.openPopup(),260);
-    });
-    frag.appendChild(b);
-  });
-  lijst.replaceChildren(frag);
-  telling.textContent=frag.childElementCount+' plekken';
-}
-
-/* ---------- bottom sheet ---------- */
-const sheet=document.getElementById('sheet'), greep=document.getElementById('greep');
-const open=()=>sheet.classList.add('open'), dicht=()=>sheet.classList.remove('open');
-greep.addEventListener('click',()=>sheet.classList.toggle('open'));
-let y0=null;
-greep.addEventListener('pointerdown',e=>{y0=e.clientY;greep.setPointerCapture(e.pointerId)});
-greep.addEventListener('pointerup',e=>{
-  if(y0===null) return;
-  const dy=e.clientY-y0; y0=null;
-  if(dy<-30) open(); else if(dy>30) dicht();
-});
-zoek.addEventListener('focus',open);
-
-/* ---------- mijn positie ---------- */
-let mijnMarker=null;
-document.getElementById('hier').addEventListener('click',()=>{
-  if(!navigator.geolocation){ melding('Geolocatie niet beschikbaar'); return; }
-  melding('Positie bepalen…');
-  navigator.geolocation.getCurrentPosition(p=>{
-    const ll=[p.coords.latitude,p.coords.longitude];
-    vertrek=ll; vertrekNaam='je huidige positie';
-    if(mijnMarker) mijnMarker.setLatLng(ll);
-    else mijnMarker=L.circleMarker(ll,{radius:8,color:'#fff',weight:3,fillColor:'#1B3FA0',fillOpacity:1}).addTo(kaart);
-    M.concat(GV,BIER,BUS,AIR).forEach(m=>m.km=afstand(vertrek,m.ll));
-    teken(); kaart.setView(ll,14);
-    melding('Afstanden vanaf je huidige positie');
-  },()=>melding('Positie niet gevonden — afstanden blijven vanaf Mýrargata 18'),{enableHighAccuracy:false,timeout:8000,maximumAge:300000});
-});
-
-/* ---------- posities: cache eerst, netwerk pas als het moet ---------- */
-const status=document.getElementById('status');
-const melding=t=>status.textContent=t;
-
-function leesCache(){ try{ return JSON.parse(localStorage.getItem(CACHE)||'{}'); }catch(e){ return {}; } }
-function schrijfCache(o){ try{ localStorage.setItem(CACHE,JSON.stringify(o)); }catch(e){} }
-
-function zetPositie(m,ll){
-  m.ll=ll; m.km=afstand(vertrek,ll); m.exact=true; m.marker.setLatLng(ll);
-  EXPO.forEach(e=>{ if(e.m===m&&e.ring) e.ring.setLatLng(ll); });
-  VIKING.forEach(v=>{ if(v.m===m&&v.ring) v.ring.setLatLng(ll); });
-}
-
-async function posities(forceer){
-  const cache=forceer?{}:leesCache();
-  let uitCache=0;
-  const alles=M.concat(GV,BIER,BUS,AIR);
-  alles.forEach(m=>{ if(m.g&&cache[m.g]) { zetPositie(m,cache[m.g]); uitCache++; } });
-  const todo=alles.filter(m=>m.g&&!cache[m.g]);
-  teken();
-  if(!todo.length){ melding(uitCache+' posities uit het geheugen — geen netwerk nodig'); return; }
-  if(!navigator.onLine){ melding('Offline — posities bij benadering'); return; }
-  let ok=0;
-  for(let i=0;i<todo.length;i++){
-    const m=todo[i];
-    melding('Posities ophalen… '+(i+1)+'/'+todo.length+' (eenmalig)');
-    try{
-      const r=await fetch('https://nominatim.openstreetmap.org/search?format=json&limit=1&q='+encodeURIComponent(m.g));
-      const j=await r.json();
-      if(j&&j[0]){ const ll=[+j[0].lat,+j[0].lon]; cache[m.g]=ll; zetPositie(m,ll); ok++; }
-    }catch(e){}
-    await new Promise(r=>setTimeout(r,1100));
-  }
-  schrijfCache(cache); teken();
-  melding(ok+' posities opgehaald en bewaard — de volgende keer laadt dit meteen');
-}
-document.getElementById('opnieuw').addEventListener('click',()=>posities(true));
-
-/* ---------- resize ---------- */
-let rt; addEventListener('resize',()=>{clearTimeout(rt);rt=setTimeout(()=>kaart.invalidateSize(),200)},{passive:true});
-sheet.addEventListener('transitionend',()=>kaart.invalidateSize());
-
-/* ---------- vervoerpaneel: tijden, keuzehulp en prijzen ---------- */
-const vp=document.getElementById('vervoer'), vin=document.getElementById('vinhoud');
-const vknop=document.querySelector('.tog[data-actie="vervoer"]');
-const vtabs=[].slice.call(document.querySelectorAll('.vtab'));
-const vst={tab:'aan',land:'16:20',van:'20:30',tot:'21:00'};
-function kopHoogte(){ document.documentElement.style.setProperty('--kopH',document.getElementById('kop').offsetHeight+'px'); }
-kopHoogte(); addEventListener('resize',kopHoogte,{passive:true});
-
-const bereik=(a,b)=>a===b?'± '+ts(a):'± '+ts(a)+' tot '+ts(b);
-const kaartKnoppen='<div class="vknoppen"><button type="button" data-kaart="kef">Kaart: luchthaven</button>'+
-  '<button type="button" data-kaart="stad">Kaart: Reykjavík</button><button type="button" data-kaart="alles">Kaart: hele route</button>'+
-  '<button type="button" data-kaart="uit">Haltes van de kaart halen</button></div>';
-/* Bus en Vervoer zijn één knop: het paneel opent en de haltes verschijnen op de kaart */
-function syncVknop(){ vknop.setAttribute('aria-pressed',String(vp.classList.contains('open')||aanLagen.bus)); }
-function zetBus(aan){
-  if(aan===aanLagen.bus) return;
-  aanLagen.bus=aan; aan?kaart.addLayer(laagBus):kaart.removeLayer(laagBus);
-  teken(); syncVknop();
-}
-const stadsbusNoot='Stadsbus: lijn 14 en 15 stoppen volgens Moovit zowel bij BSÍ als bij de halte Mýrargata. Rittijd en frequentie zijn niet bevestigd, controleer ze in de planner op straeto.is.';
-const bordNoot='Bordjes: lijnnummer en eindhalte komen uit de routepagina\'s op straeto.is. Strætó publiceert de exacte tekst op de bus niet, dus ga vooral op het lijnnummer af. Voor lijn 14 en 15 is de richting afgeleid van de eindhalten (14 Grandi – Verzló, 15 Vesturbær – Mosfellsbær); Moovit noemt bij BSÍ voor lijn 15 een andere naam (Reykjavegur). Controleer het bord bij het instappen.';
-const stadsBordHeen=bordenHtml([['14','Grandi','richting Grandi','Uitstappen: halte Mýrargata (1 tot 2 min lopen)'],['15','Vesturbær','richting Vesturbær','Uitstappen: halte Mýrargata (1 tot 2 min lopen)']]);
-
-function formAan(){
-  return '<div class="vk"><div class="vt">Vr 6 nov · KEF → Mýrargata 18</div>'+
-    '<div class="vform"><label>Landing HV9121<input type="time" id="v-land" value="'+vst.land+'"></label></div>'+
-    '<div class="vnoot">Alleen handbagage. Gepland: landing 16:20. Vul de echte landingstijd in als de vlucht vertraagd is.</div></div>'+
-    '<div id="v-uit"></div>';
-}
-function uitAan(){
-  const r=berekenAankomst(vst.land), f=r.flybus;
-  let h='<div class="vk"><div class="vnoot">Je staat naar schatting om <b>'+ts(r.buiten)+'</b> buiten bij de halte.</div></div>';
-  h+='<div class="vkop2">Strætó lijn 55 · instappen bij KEF Komur</div>';
-  h+='<div class="vnoot" style="padding:0 4px 4px">Sinds 1 okt 2026 vertrekt lijn 55 bij de nieuwe halte KEF Komur aan de aankomstzijde, via een overdekte looproute. Kjóavellir is nu de halte van lijn 89.</div>';
-  if(!r.ritten.length) h+='<div class="vk">Geen Strætó meer na dat uur. Neem de Flybus.</div>';
-  r.ritten.forEach((x,i)=>{
-    h+='<div class="vk rit'+(i===0?' eerste':'')+'"><div class="vrij"><span class="vuur">'+ts(x.dep)+'</span>'+
-      '<span class="vdoel">→ '+x.halte+' '+ts(x.aan)+'</span><span class="vwacht">'+x.wacht+' min na buiten</span></div>'+
-      bord('55',x.halte,'richting Reykjavík');
-    if(x.bsi){
-      h+='<div class="vsub"><b>Naar het appartement vanaf BSÍ</b><br>'+
-        'Stadsbus lijn 14 of 15: thuis <b>'+bereik(x.stad[0],x.stad[1])+'</b>'+stadsBordHeen+
-        'Te voet (1,7 km): thuis <b>± '+ts(x.voet)+'</b> · taxi: thuis <b>± '+ts(x.taxi)+'</b></div>';
+async function fbLoad() {
+  showSyncBar('⏳ Data laden van cloud…');
+  try {
+    const snap = await DOC.get();
+    if (snap.exists) {
+      const d = snap.data();
+      if (d.users)    users    = d.users;
+      if (d.klanten)  klanten  = d.klanten;
+      if (d.projects) projects = d.projects;
+      if (d.entries)  entries  = d.entries;
+      if (Array.isArray(d.omschrijvingen) && d.omschrijvingen.length) omschrijvingen = d.omschrijvingen;
+      if (Array.isArray(d.toelichtingen)) toelichtingen = d.toelichtingen;
+      if (d.lastUserId !== undefined) lastUserId = d.lastUserId;
+      if (d.ids) {
+        nextId       = d.ids.nextId      || 1;
+        nextUserId   = d.ids.nextUserId  || 2;
+        nextKlantId  = d.ids.nextKlantId || 1;
+        nextProjId   = d.ids.nextProjId  || 15;
+        nextOmschrId = d.ids.nextOmschrId || (Math.max(0,...omschrijvingen.map(o=>o.id||0))+1);
+        nextToelId   = d.ids.nextToelId   || (Math.max(0,...toelichtingen.map(t=>t.id||0))+1);
+      }
+      showSyncBar('✓ Data geladen van cloud', 'ok');
     } else {
-      h+='<div class="vsub"><b>Naar het appartement vanaf Fjörður</b><br>'+
-        'Lijn 1 naar Skúlagata, dan ± 15 min lopen: thuis <b>'+bereik(x.thuis[0],x.thuis[1])+'</b>'+
-        bord('1','Skúlagata','richting centrum Reykjavík','Uitstappen: Skúlagata (± 15 min lopen)')+
-        'Deze rit rijdt niet door tot BSÍ.</div>';
+      // Geen cloud data: stuur lokale data naar cloud
+      showSyncBar('☁ Eerste sync: lokale data uploaden…');
+      load(); // laad lokaal eerst
+      await fbSave();
     }
-    if(x.laat) h+='<div class="vwaarsch">Lijn 1 laat in de avond is niet nagekeken. De Flybus is zekerder.</div>';
-    h+='</div>';
-  });
-  h+='<div class="vkop2">Flybus · geen vaste tijd</div>'+
-    '<div class="vk rit"><div class="vrij"><span class="vuur">± '+ts(f.vertrek[0])+'–'+ts(f.vertrek[1])+'</span>'+
-    '<span class="vdoel">→ BSÍ '+ts(f.bsi[0])+'–'+ts(f.bsi[1])+'</span></div>'+
-    bord('Flybus','Reykjavík BSÍ','bordtekst niet bevestigd, herken de Flybus aan het logo')+
-    '<div class="vsub"><b>Naar het appartement vanaf BSÍ</b><br>'+
-    'Stadsbus lijn 14 of 15: thuis <b>'+bereik(f.stad[0],f.stad[1])+'</b>'+stadsBordHeen+
-    'Te voet: thuis <b>'+bereik(f.voet[0],f.voet[1])+'</b><br>'+
-    'Flybus+: minibus naar de halte Sjóminjasafnið (± 200 m van het appartement), thuis <b>'+bereik(f.plus[0],f.plus[1])+'</b><br>'+
-    'Het ticket vanaf KEF is geldig op elke bus, ook bij vertraging.</div></div>';
-  h+='<div class="vnoot" style="padding:0 4px 8px">'+stadsbusNoot+'</div>';
-  h+='<div class="vnoot" style="padding:0 4px 8px">'+bordNoot+'</div>';
-  h+=kaartKnoppen;
-  document.getElementById('v-uit').innerHTML=h;
-}
-
-function formTerug(){
-  return '<div class="vk"><div class="vt">Di 10 nov · BSÍ → KEF → Aurora Hotel</div>'+
-    '<div class="vform"><label>Aan het hotel vanaf<input type="time" id="v-van" value="'+vst.van+'"></label>'+
-    '<label>tot<input type="time" id="v-tot" value="'+vst.tot+'"></label></div>'+
-    '<div class="vnoot">Alleen ritten vanaf BSÍ. Uitchecken vóór 10:00. Het hotel ligt ± 100 m van de terminal, opgegeven aankomsttijd 21:00.</div></div>'+
-    '<div id="v-uit"></div>';
-}
-function uitTerug(){
-  const r=berekenTerug(vst.van,vst.tot), f=r.flybus;
-  const stat={ok:'past in het tijdvenster',vroeg:'te vroeg voor het tijdvenster',laat:'te laat voor het tijdvenster'};
-  let h='<div class="vkop2">Strætó lijn 55 vanaf BSÍ naar KEF</div>';
-  if(r.geenInVenster) h+='<div class="vwaarsch" style="margin:0 0 10px">Geen Strætó-rit vanaf BSÍ brengt je in dit tijdvenster aan het hotel. Na 18:28 start lijn 55 alleen nog in Fjörður. Neem voor het venster de Flybus.</div>';
-  if(!r.ritten.length) h+='<div class="vk">Geen Strætó-rit vanaf BSÍ in of rond dit tijdvenster.</div>';
-  r.ritten.forEach(x=>{
-    h+='<div class="vk rit '+x.status+'"><div class="vrij"><span class="vuur">'+ts(x.dep)+'</span>'+
-      '<span class="vdoel">BSÍ → KEF '+ts(x.kef)+'</span><span class="vwacht">'+stat[x.status]+'</span></div>'+
-      bord('55','KEF – Airport','richting Keflavík')+
-      '<div class="vsub">Aan het hotel <b>± '+ts(x.hotel)+'</b></div></div>';
-  });
-  h+='<div class="vnoot" style="padding:0 4px 8px">Rit 19:50 vanaf Fjörður (KEF 20:33) is weggelaten: die start niet in BSÍ.</div>';
-  h+='<div class="vkop2">Flybus vanaf BSÍ · vertrekuur kiezen bij het boeken</div>'+
-    '<div class="vk rit ok"><div class="vrij"><span class="vuur">'+ts(f.bsi[0])+'–'+ts(f.bsi[1])+'</span>'+
-    '<span class="vdoel">vertrek BSÍ</span></div>'+
-    bord('Flybus','KEF Airport','bordtekst niet bevestigd, personeel in BSÍ wijst de juiste bus aan')+
-    '<div class="vsub">Kies in de boekingskalender op flybus.is een vertrek in dit venster. Een bus doet er ± 45 min over.<br>'+
-    'Aan het hotel ± '+ts(f.bsi[0]+51)+' tot '+ts(f.bsi[1]+51)+'.<br>'+
-    'De laatste Flybus vertrekt om 22:30. Bij een gemiste bus blijft het ticket geldig voor de volgende.</div></div>';
-  h+='<div class="vnoot" style="padding:0 4px 8px">Aan het hotel stap je uit bij KEF Brottfarir, bij de terminal. Instappen kan daar niet.</div>';
-  h+='<div class="vnoot" style="padding:0 4px 8px">Bordjes: lijnnummer en bestemming komen van straeto.is en flybus.is. De exacte tekst op de bus is niet gepubliceerd, dus ga op het lijnnummer af. Flybus-personeel in BSÍ wijst de juiste bus aan.</div>';
-  h+=kaartKnoppen;
-  document.getElementById('v-uit').innerHTML=h;
-}
-
-function viewInfo(){
-  return '<div class="vk"><div class="vt">Praktisch</div><ul class="vlijst">'+
-    '<li>Klappið werkt niet zonder IJslands nummer. Betaal bij Strætó contactloos met bankkaart of Apple Pay/Google Pay, of bij de chauffeur.</li>'+
-    '<li>Strætó op KEF: instappen bij KEF Komur (aankomstzijde, overdekte looproute), uitstappen bij KEF Brottfarir. Beide haltes zijn nieuw sinds 1 okt 2026. Flybus: buiten de aankomsthal.</li>'+
-    '<li>10 nov: uitchecken vóór 10:00, vertrek pas na 17:00. Met alleen handbagage kunnen de tassen mee. BSÍ heeft volgens flybus.is ook bagageopslag.</li>'+
-    '<li>Aurora Hotel: +354 595 1900. Laat het weten bij vertraging.</li></ul></div>'+
-    '<div class="vk"><div class="vt">Nog niet bevestigd</div><ul class="vlijst">'+
-    '<li>Stadsbus lijn 14 of 15 tussen BSÍ en de halte Mýrargata: de lijnen komen uit Moovit, rittijd (geschat 10 tot 15 min), en frequentie niet.</li>'+
-    '<li>Rittijd lijn 1 tussen Skúlagata en Fjörður (schatting 35 tot 45 min), nodig voor de ritten die in Fjörður eindigen.</li>'+
-    '<li>Exacte Flybus-vertrekuren vanaf BSÍ op 10 nov: zie flybus.is.</li>'+
-    '<li>De exacte tekst op het bord van elke bus. Strætó publiceert die niet; de bordjes tonen lijnnummer en eindhalte uit straeto.is.</li>'+
-    '<li>Alle haltes met ‘bij benadering’ staan niet op de exacte plek getekend, ook KEF Komur en KEF Brottfarir.</li></ul></div>'+
-    '<div class="vnoot" style="padding:0 4px">Bronnen: straeto.is (tijdtabel lijn 55, werkdagen, geldig vanaf 02.01.2026; routepagina\'s lijn 1, 14, 15), stjornarradid.is (nieuwe KEF-haltes, 30.09.2026), flybus.is, Moovit (stadslijnen), Booking- en hotelbevestiging.</div>';
-}
-
-function toonTab(t){
-  vst.tab=t;
-  vtabs.forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.tab===t)));
-  if(t==='aan'){
-    vin.innerHTML=formAan(); uitAan();
-    document.getElementById('v-land').addEventListener('input',e=>{ if(e.target.value){vst.land=e.target.value; uitAan();} });
-  } else if(t==='terug'){
-    vin.innerHTML=formTerug(); uitTerug();
-    document.getElementById('v-van').addEventListener('input',e=>{ if(e.target.value){vst.van=e.target.value; uitTerug();} });
-    document.getElementById('v-tot').addEventListener('input',e=>{ if(e.target.value){vst.tot=e.target.value; uitTerug();} });
-  } else {
-    vin.innerHTML=viewInfo();
+  } catch(e) {
+    console.error('Firebase load error:', e);
+    showSyncBar('⚠ Geen cloudverbinding – lokale data gebruikt', 'err');
+    load(); // fallback naar localStorage
   }
-  vin.scrollTop=0;
 }
-vtabs.forEach(b=>b.addEventListener('click',()=>toonTab(b.dataset.tab)));
 
-function openVervoer(){ kopHoogte(); vp.classList.add('open'); zetBus(true); syncVknop(); toonTab(vst.tab); }
-function sluitVervoer(){ vp.classList.remove('open'); syncVknop(); }
-vknop.addEventListener('click',()=>vp.classList.contains('open')?sluitVervoer():openVervoer());
-document.getElementById('vsluit').addEventListener('click',sluitVervoer);
-addEventListener('keydown',e=>{ if(e.key==='Escape'&&vp.classList.contains('open')) sluitVervoer(); });
-
-function toonKaart(w){
-  sluitVervoer();
-  if(w==='uit'){ zetBus(false); return; }
-  zetBus(true);
-  const ids={kef:['kef-s','kef-b','kef-f','aur'], stad:['bsi','sku','myr','fbp'], alles:BUS.map(b=>b.id)};
-  const pts=ids[w].map(bpos); if(w!=='kef') pts.push(THUIS);
-  dicht();
-  kaart.fitBounds(L.latLngBounds(pts),{paddingTopLeft:[28,150],paddingBottomRight:[28,120],maxZoom:16});
+function startFbListener() {
+  if (fbListenerActive) return;
+  fbListenerActive = true;
+  DOC.onSnapshot(snap => {
+    if (!snap.exists) return;
+    const d = snap.data();
+    if (!d.updatedAt) return; // skip lege updates
+    // Vergelijk timestamp om eigen saves niet te herverwerken
+    if (d.users)    users    = d.users;
+    if (d.klanten)  klanten  = d.klanten;
+    if (d.projects) projects = d.projects;
+    if (d.entries)  entries  = d.entries;
+    if (Array.isArray(d.omschrijvingen) && d.omschrijvingen.length) omschrijvingen = d.omschrijvingen;
+    if (Array.isArray(d.toelichtingen)) toelichtingen = d.toelichtingen;
+    if (d.ids) {
+      nextId       = d.ids.nextId       || nextId;
+      nextUserId   = d.ids.nextUserId   || nextUserId;
+      nextKlantId  = d.ids.nextKlantId  || nextKlantId;
+      nextProjId   = d.ids.nextProjId   || nextProjId;
+      nextOmschrId = d.ids.nextOmschrId || nextOmschrId;
+      nextToelId   = d.ids.nextToelId   || nextToelId;
+    }
+    // Herrender actieve pagina
+    populateAllFilters();
+    renderDashboard();
+    renderOverzicht();
+    renderProjecten();
+    showSyncBar('🔄 Sync van ander toestel ontvangen', 'ok');
+  }, err => {
+    console.error('Firestore listener error:', err);
+  });
 }
-vin.addEventListener('click',e=>{ const b=e.target.closest('[data-kaart]'); if(b) toonKaart(b.dataset.kaart); });
 
-teken();
-posities(false);
+// ══════════════════════════
+// PERSIST (localStorage als backup)
+// ══════════════════════════
+function save(){
+  localStorage.setItem('cv_users',JSON.stringify(users));
+  localStorage.setItem('cv_klanten',JSON.stringify(klanten));
+  localStorage.setItem('cv_projects',JSON.stringify(projects));
+  localStorage.setItem('cv_entries',JSON.stringify(entries));
+  localStorage.setItem('cv_omschrijvingen',JSON.stringify(omschrijvingen));
+  localStorage.setItem('cv_toelichtingen',JSON.stringify(toelichtingen));
+  localStorage.setItem('cv_lastUser',lastUserId||'');
+  localStorage.setItem('cv_ids',JSON.stringify({nextId,nextUserId,nextKlantId,nextProjId,nextOmschrId,nextToelId}));
+  // Ook naar Firebase sturen
+  fbSave();
+}
+function load(){
+  try{
+    const u=localStorage.getItem('cv_users'),k=localStorage.getItem('cv_klanten'),
+          p=localStorage.getItem('cv_projects'),e=localStorage.getItem('cv_entries'),
+          om=localStorage.getItem('cv_omschrijvingen'),
+          tl=localStorage.getItem('cv_toelichtingen'),
+          ids=localStorage.getItem('cv_ids');
+    if(u)users=JSON.parse(u);
+    if(k)klanten=JSON.parse(k);
+    if(p)projects=JSON.parse(p);
+    if(e)entries=JSON.parse(e);
+    if(om){const arr=JSON.parse(om);if(Array.isArray(arr)&&arr.length)omschrijvingen=arr;}
+    if(tl){const arr=JSON.parse(tl);if(Array.isArray(arr))toelichtingen=arr;}
+    lastUserId=parseInt(localStorage.getItem('cv_lastUser'))||null;
+    if(ids){const o=JSON.parse(ids);nextId=o.nextId||1;nextUserId=o.nextUserId||2;nextKlantId=o.nextKlantId||1;nextProjId=o.nextProjId||15;nextOmschrId=o.nextOmschrId||(Math.max(0,...omschrijvingen.map(x=>x.id||0))+1);nextToelId=o.nextToelId||(Math.max(0,...toelichtingen.map(x=>x.id||0))+1);}
+  }catch(err){}
+}
+
+// ══════════════════════════
+// INIT
+// ══════════════════════════
+document.addEventListener('DOMContentLoaded', async () => {
+  // Laad eerst van Firebase, dan UI opstarten
+  await fbLoad();
+  startFbListener();
+
+  const uid = lastUserId && users.find(u=>u.id===lastUserId) ? lastUserId : (users[0]?.id||null);
+  if(uid) doLogin(uid);
+  else openUserModal();
+
+  const now=new Date();
+  const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+  ['ov-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
+  const dp=document.getElementById('dash-periode');if(dp)dp.value='maand';
+});
+
+// ══════════════════════════
+// USER
+// ══════════════════════════
+function openUserModal(){
+  const grid=document.getElementById('userModalGrid');
+  grid.innerHTML=users.map(u=>`
+    <button class="user-btn ${u.id===currentUserId?'active-user':''}" onclick="doLogin(${u.id})">
+      <div class="user-avatar ${u.id%2===0?'alt':''}">${u.initials}</div>
+      <div>
+        <div style="font-size:14px;font-weight:700;color:var(--dark);">${u.naam}</div>
+        ${u.id===lastUserId?'<div style="font-size:10px;color:var(--orange);font-weight:700;">Laatste sessie</div>':''}
+      </div>
+    </button>`).join('');
+  document.getElementById('userModal').classList.add('show');
+}
+function doLogin(uid){
+  currentUserId=uid; lastUserId=uid; save();
+  const u=users.find(x=>x.id===uid);
+  document.getElementById('navAvatar').textContent=u.initials;
+  document.getElementById('navUsername').textContent=u.naam;
+  document.getElementById('userModal').classList.remove('show');
+  fillToday();
+  if(!document.getElementById('entryRows').children.length) addEntryRow();
+  populateAllFilters();
+  renderDashboard(); renderOverzicht(); renderProjecten();
+}
+function confirmAddUser(){
+  const naam=document.getElementById('newUserName').value.trim();
+  if(!naam)return;
+  const initials=naam.split(' ').map(w=>w[0]).join('').toUpperCase().slice(0,2);
+  users.push({id:nextUserId++,naam,initials});
+  save(); openUserModal();
+  document.getElementById('newUserName').value='';
+  document.getElementById('newUserFormModal').style.display='none';
+}
+
+// ══════════════════════════
+// NAV
+// ══════════════════════════
+function showPage(name,btn){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t=>t.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  if(btn)btn.classList.add('active');
+  if(name==='dashboard')renderDashboard();
+  if(name==='overzicht')renderOverzicht();
+  if(name==='projecten')renderProjecten();
+}
+
+function updateNavClient(){
+  const activeKlanten=klanten.filter(k=>k.actief);
+  const sub=document.getElementById('invoer-sub');
+  if(sub)sub.textContent=activeKlanten.length?`Registreer uren voor ${activeKlanten.map(k=>k.naam).join(', ')}`:'Voeg een klant toe via Projecten';
+}
+
+// ══════════════════════════
+// INVOER
+// ══════════════════════════
+function fillToday(){
+  const d=document.getElementById('inp-datum');
+  if(d)d.value=new Date().toISOString().split('T')[0];
+}
+
+function projectOptions(selectedId){
+  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  return sorted.map(p=>{
+    const k=klanten.find(x=>x.id===p.klantId);
+    const label=k?`${p.naam} (${k.naam})`:p.naam;
+    return `<option value="${p.id}" ${p.id==selectedId?'selected':''} ${!p.actief?'style="color:#8888a0;"':''}>${label}${!p.actief?' (inactief)':''}</option>`;
+  }).join('');
+}
+
+// ── ZOEKBARE PROJECT-COMBOBOX ──
+function comboMatches(term){
+  const t=(term||'').trim().toLowerCase();
+  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  if(!t) return sorted;
+  return sorted.filter(p=>p.naam.toLowerCase().includes(t)||(p.code||'').toLowerCase().includes(t));
+}
+function comboLabel(p){
+  const k=klanten.find(x=>x.id===p.klantId);
+  return {naam:p.naam,klant:k?k.naam:''};
+}
+function renderComboList(rowId){
+  const row=document.getElementById(rowId);
+  if(!row)return;
+  const search=row.querySelector('.row-project-search');
+  const list=row.querySelector('.combo-list');
+  const matches=comboMatches(search.value).slice(0,40);
+  if(!matches.length){
+    list.innerHTML='<div class="combo-empty">Geen projecten gevonden</div>';
+  } else {
+    list.innerHTML=matches.map((p,i)=>{
+      const lbl=comboLabel(p);
+      return `<div class="combo-item${!p.actief?' inactive':''}${i===0?' highlight':''}" data-id="${p.id}" onmousedown="selectComboItem('${rowId}',${p.id})">
+        <span>${lbl.naam}${!p.actief?' (inactief)':''}</span>
+        ${lbl.klant?`<span class="ci-klant">${lbl.klant}</span>`:''}
+      </div>`;
+    }).join('');
+  }
+  list.classList.add('show');
+}
+function openComboList(rowId){ renderComboList(rowId); }
+function closeComboList(rowId){
+  const row=document.getElementById(rowId);
+  if(!row)return;
+  row.querySelector('.combo-list').classList.remove('show');
+}
+function filterComboList(rowId){
+  const row=document.getElementById(rowId);
+  row.querySelector('.row-project').value=''; // selectie ongeldig zodra er getypt wordt
+  row.querySelector('.row-project-search').classList.remove('error');
+  renderComboList(rowId);
+}
+function selectComboItem(rowId,projId){
+  const row=document.getElementById(rowId);
+  const p=projects.find(x=>x.id===projId);
+  if(!row||!p)return;
+  row.querySelector('.row-project').value=p.id;
+  row.querySelector('.row-project-search').value=p.naam;
+  row.querySelector('.row-project-search').classList.remove('error');
+  closeComboList(rowId);
+  recalcTotal();
+}
+function comboKeydown(e,rowId){
+  const row=document.getElementById(rowId);
+  const list=row.querySelector('.combo-list');
+  if(!list.classList.contains('show') && (e.key==='ArrowDown'||e.key==='Enter')){
+    renderComboList(rowId); return;
+  }
+  const items=[...list.querySelectorAll('.combo-item')];
+  if(!items.length)return;
+  let idx=items.findIndex(it=>it.classList.contains('highlight'));
+  if(e.key==='ArrowDown'){
+    e.preventDefault();
+    idx=(idx+1)%items.length;
+    items.forEach(it=>it.classList.remove('highlight'));
+    items[idx].classList.add('highlight');
+    items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();
+    idx=idx<=0?items.length-1:idx-1;
+    items.forEach(it=>it.classList.remove('highlight'));
+    items[idx].classList.add('highlight');
+    items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    const sel=items[idx>=0?idx:0];
+    if(sel) selectComboItem(rowId,parseInt(sel.dataset.id));
+  } else if(e.key==='Escape'){
+    closeComboList(rowId);
+  }
+}
+
+// ── TOELICHTING-COMBOBOX (eerder gebruikte toelichtingen) ──
+const MAX_TOELICHTINGEN=300;
+function toelichtingToevoegen(tekst){
+  const t=(tekst||'').trim();
+  if(!t||t.length<2)return false;
+  if(toelichtingen.some(x=>x.tekst.toLowerCase()===t.toLowerCase()))return false;
+  toelichtingen.push({id:nextToelId++,tekst});
+  if(toelichtingen.length>MAX_TOELICHTINGEN)toelichtingen=toelichtingen.slice(-MAX_TOELICHTINGEN);
+  return true;
+}
+function tcRender(rowId){
+  const row=document.getElementById(rowId); if(!row)return;
+  const ta=row.querySelector('.row-tekst');
+  const list=row.querySelector('.tc-list');
+  const term=(ta.value||'').trim().toLowerCase();
+  const alle=toelichtingen.slice().reverse(); // recentste eerst
+  const matches=(term?alle.filter(t=>t.tekst.toLowerCase().includes(term)):alle).slice(0,40);
+  let html='';
+  if(matches.length){
+    html+=matches.map(t=>`<div class="combo-item" data-id="${t.id}" onmousedown="tcSelect('${rowId}',${t.id})">
+      <span>${escAttr(t.tekst)}</span>
+      <span class="ci-del" title="Uit lijst verwijderen" onmousedown="tcDelete(event,'${rowId}',${t.id})">✕</span>
+    </div>`).join('');
+  } else {
+    html+=`<div class="combo-empty">${toelichtingen.length?'Geen eerdere toelichting gevonden':'Nog geen bewaarde toelichtingen — wat je opslaat komt hier automatisch in'}</div>`;
+  }
+  const huidig=(ta.value||'').trim();
+  const bestaat=huidig&&toelichtingen.some(x=>x.tekst.toLowerCase()===huidig.toLowerCase());
+  if(huidig&&!bestaat)html+=`<div class="combo-foot" onmousedown="tcAddNew(event,'${rowId}')">＋ "${escAttr(huidig.slice(0,40))}${huidig.length>40?'…':''}" bewaren</div>`;
+  list.innerHTML=html;
+  list.classList.add('show');
+  list.scrollTop=0;
+}
+function tcOpen(rowId){tcRender(rowId);}
+function tcFilter(rowId){tcRender(rowId);}
+function tcClose(rowId){const row=document.getElementById(rowId);if(row)row.querySelector('.tc-list').classList.remove('show');}
+function tcSelect(rowId,id){
+  const row=document.getElementById(rowId);const t=toelichtingen.find(x=>x.id===id);
+  if(!row||!t)return;
+  const ta=row.querySelector('.row-tekst');
+  ta.value=t.tekst;
+  tcClose(rowId);
+  const uren=row.querySelector('.row-uren'); if(uren) setTimeout(()=>uren.focus(),0);
+}
+function tcAddNew(e,rowId){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const row=document.getElementById(rowId);if(!row)return;
+  const ta=row.querySelector('.row-tekst');
+  if(toelichtingToevoegen(ta.value)){save();showToast('Toelichting bewaard in de lijst','success');}
+  else showToast('Staat al in de lijst','warn');
+  tcClose(rowId);
+}
+function tcDelete(e,rowId,id){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const t=toelichtingen.find(x=>x.id===id);if(!t)return;
+  if(!confirm(`"${t.tekst}" uit de lijst verwijderen?\n\n(Reeds opgeslagen registraties blijven behouden.)`))return;
+  toelichtingen=toelichtingen.filter(x=>x.id!==id);
+  save();tcRender(rowId);
+  showToast('Uit de lijst verwijderd','warn');
+}
+function tcKeydown(e,rowId){
+  if(e.key==='Escape'){tcClose(rowId);return;}
+  if(e.key==='Tab'){tcClose(rowId);return;}
+}
+
+// ── OMSCHRIJVING-COMBOBOX (kiezen + lijst aanvullen) ──
+function escAttr(v){return String(v||'').replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');}
+function omschrSorted(){
+  const groepOrder=g=>{const i=['Contact & overleg','Taken','Eigen'].indexOf(g||'Eigen');return i<0?99:i;};
+  return omschrijvingen.slice().sort((a,b)=>groepOrder(a.groep)-groepOrder(b.groep)||(a.id||0)-(b.id||0));
+}
+function ocMatches(term){
+  const t=(term||'').trim().toLowerCase();
+  const all=omschrSorted();
+  return t?all.filter(o=>o.tekst.toLowerCase().includes(t)):all;
+}
+function ocRender(rowId){
+  const row=document.getElementById(rowId); if(!row)return;
+  const search=row.querySelector('.row-type-search');
+  const list=row.querySelector('.oc-list');
+  const term=(search.value||'').trim();
+  const matches=ocMatches(term);
+  let html='',lastGroep=null,idx=0;
+  matches.forEach(o=>{
+    const g=o.groep||'Eigen';
+    if(g!==lastGroep){html+=`<div class="oc-group">${g}</div>`;lastGroep=g;}
+    html+=`<div class="combo-item${idx===0?' highlight':''}" data-id="${o.id}" data-tekst="${escAttr(o.tekst)}" onmousedown="ocSelect('${rowId}',${o.id})">
+      <span>${o.tekst}</span>
+      <span class="ci-del" title="Verwijderen uit lijst" onmousedown="ocDelete(event,'${rowId}',${o.id})">✕</span>
+    </div>`;
+    idx++;
+  });
+  if(!matches.length) html+='<div class="combo-empty">Niet in de lijst — je kan dit zo ook gebruiken</div>';
+  const exact=omschrijvingen.some(o=>o.tekst.toLowerCase()===term.toLowerCase());
+  if(term&&!exact) html+=`<div class="combo-foot" onmousedown="ocAddNew(event,'${rowId}')">＋ "${escAttr(term)}" aan lijst toevoegen</div>`;
+  else html+=`<div class="combo-foot" onmousedown="ocAddNew(event,'${rowId}')">＋ Nieuwe omschrijving toevoegen</div>`;
+  list.innerHTML=html;
+  list.classList.add('show');
+  list.scrollTop=0;
+}
+function ocOpen(rowId){ocRender(rowId);}
+function ocClose(rowId){const row=document.getElementById(rowId);if(row)row.querySelector('.oc-list').classList.remove('show');}
+function ocFilter(rowId){ocRender(rowId);}
+function ocSelect(rowId,id){
+  const row=document.getElementById(rowId);const o=omschrijvingen.find(x=>x.id===id);
+  if(!row||!o)return;
+  const search=row.querySelector('.row-type-search');
+  search.value=o.tekst;
+  ocClose(rowId);
+  const ta=row.querySelector('.row-tekst'); if(ta) setTimeout(()=>ta.focus(),0);
+}
+function ocAddNew(e,rowId){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const row=document.getElementById(rowId);if(!row)return;
+  const search=row.querySelector('.row-type-search');
+  const tekst=(search.value||'').trim();
+  if(!tekst){showToast('Typ eerst de nieuwe omschrijving in het veld','warn');search.focus();return;}
+  const bestaand=omschrijvingen.find(o=>o.tekst.toLowerCase()===tekst.toLowerCase());
+  if(bestaand){showToast('Staat al in de lijst','warn');ocSelect(rowId,bestaand.id);return;}
+  const nieuw={id:nextOmschrId++,tekst,groep:'Eigen'};
+  omschrijvingen.push(nieuw);
+  save();
+  ocSelect(rowId,nieuw.id);
+  showToast(`"${tekst}" toegevoegd aan de lijst`,'success');
+}
+function ocDelete(e,rowId,id){
+  if(e){e.preventDefault();e.stopPropagation();}
+  const o=omschrijvingen.find(x=>x.id===id);if(!o)return;
+  if(!confirm(`"${o.tekst}" uit de lijst verwijderen?\n\n(Reeds opgeslagen registraties blijven behouden.)`))return;
+  omschrijvingen=omschrijvingen.filter(x=>x.id!==id);
+  save();
+  ocRender(rowId);
+  showToast('Uit de lijst verwijderd','warn');
+}
+function ocKeydown(e,rowId){
+  const row=document.getElementById(rowId);
+  const list=row.querySelector('.oc-list');
+  if(!list.classList.contains('show')&&(e.key==='ArrowDown'||e.key==='Enter')){ocRender(rowId);return;}
+  const items=[...list.querySelectorAll('.combo-item')];
+  if(e.key==='Escape'){ocClose(rowId);return;}
+  if(!items.length)return;
+  let idx=items.findIndex(it=>it.classList.contains('highlight'));
+  if(e.key==='ArrowDown'){
+    e.preventDefault();idx=(idx+1)%items.length;
+    items.forEach(it=>it.classList.remove('highlight'));items[idx].classList.add('highlight');items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='ArrowUp'){
+    e.preventDefault();idx=idx<=0?items.length-1:idx-1;
+    items.forEach(it=>it.classList.remove('highlight'));items[idx].classList.add('highlight');items[idx].scrollIntoView({block:'nearest'});
+  } else if(e.key==='Enter'){
+    e.preventDefault();
+    const sel=items[idx>=0?idx:0];
+    if(sel)ocSelect(rowId,parseInt(sel.dataset.id));
+  }
+}
+
+function addEntryRow(projId='',type='',tekst='',uren='',focusProject=false){
+  window.rowCount=(window.rowCount||0)+1;
+  const id='row-'+window.rowCount;
+  const div=document.createElement('div');
+  div.className='entry-row'; div.id=id;
+  const initialProj=projId?projects.find(x=>x.id==projId):null;
+  div.innerHTML=`
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Project *</label>
+      <div class="combo">
+        <input type="text" class="row-project-search combo-input" autocomplete="off"
+          placeholder="Typ om te zoeken…" value="${initialProj?initialProj.naam:''}"
+          oninput="filterComboList('${id}')" onfocus="openComboList('${id}')"
+          onkeydown="comboKeydown(event,'${id}')" onblur="closeComboList('${id}')">
+        <input type="hidden" class="row-project" value="${projId||''}">
+        <div class="combo-list"></div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Omschrijving</label>
+      <div class="combo">
+        <input type="text" class="row-type-search combo-input" autocomplete="off" spellcheck="false"
+          placeholder="Kies of typ…" value="${escAttr(type)}"
+          oninput="ocFilter('${id}')" onfocus="ocOpen('${id}')"
+          onkeydown="ocKeydown(event,'${id}')" onblur="ocClose('${id}')">
+        <div class="combo-list oc-list"></div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Toelichting</label>
+      <div class="combo">
+        <textarea class="row-tekst" spellcheck="true" lang="nl" autocorrect="on" autocapitalize="sentences"
+          placeholder="Extra uitleg — kies uit de lijst of typ…"
+          oninput="tcFilter('${id}')" onfocus="tcOpen('${id}')"
+          onkeydown="tcKeydown(event,'${id}')" onblur="tcClose('${id}')">${tekst}</textarea>
+        <div class="combo-list tc-list"></div>
+      </div>
+    </div>
+    <div>
+      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Uren *</label>
+      <input type="number" class="row-uren" min="0" max="24" step="0.25" value="${uren}" placeholder="0" style="text-align:center;" oninput="recalcTotal()">
+    </div>
+    <button class="entry-row-remove" onclick="removeRow('${id}')">✕</button>`;
+  document.getElementById('entryRows').appendChild(div);
+  recalcTotal();
+  if(focusProject){
+    const inp=div.querySelector('.row-project-search');
+    if(inp){ inp.focus(); inp.scrollIntoView({block:'center',behavior:'smooth'}); }
+  }
+}
+window.rowCount=0;
+
+function removeRow(id){const el=document.getElementById(id);if(el)el.remove();recalcTotal();}
+
+function recalcTotal(){
+  let t=0;
+  document.querySelectorAll('.row-uren').forEach(inp=>{
+    const v=parseFloat(inp.value)||0;
+    if(v<0)inp.classList.add('error');
+    else{inp.classList.remove('error');t+=v;}
+  });
+  const el=document.getElementById('totalHours'),bar=document.getElementById('totalBar');
+  if(!el)return;
+  el.textContent=t.toFixed(2)+' u';
+  bar.className='total-bar';
+  if(t>0&&t<8)bar.classList.add('warn');
+  else if(t>=8)bar.classList.add('ok');
+}
+
+function checkDuplicate(){
+  const datum=document.getElementById('inp-datum').value;
+  const dup=entries.some(e=>e.datum===datum&&e.userId===currentUserId);
+  document.getElementById('dupWarning').style.display=dup?'block':'none';
+}
+
+function saveEntry(){
+  const datum=document.getElementById('inp-datum').value;
+  if(!datum){document.getElementById('err-datum').classList.add('show');document.getElementById('inp-datum').classList.add('error');return;}
+  document.getElementById('err-datum').classList.remove('show');document.getElementById('inp-datum').classList.remove('error');
+  const rows=document.querySelectorAll('.entry-row');
+  let hasError=false,newEntries=[];
+  rows.forEach(row=>{
+    const projId=row.querySelector('.row-project').value;
+    const type=row.querySelector('.row-type-search').value.trim();
+    const tekst=row.querySelector('.row-tekst').value.trim();
+    const uren=parseFloat(row.querySelector('.row-uren').value)||0;
+    if(!projId){row.querySelector('.row-project-search').classList.add('error');hasError=true;}
+    else row.querySelector('.row-project-search').classList.remove('error');
+    if(uren<0)hasError=true;
+    if(uren>0&&projId){
+      const p=projects.find(x=>x.id==projId);
+      newEntries.push({id:nextId++,datum,userId:currentUserId,klantId:p?.klantId||null,projectId:parseInt(projId),type,omschrijving:tekst,uren});
+    }
+  });
+  if(hasError){showToast('Controleer de invoer','error');return;}
+  if(!newEntries.length){showToast('⚠️ Vul minstens één project met uren in','warn');return;}
+  entries.push(...newEntries);
+  newEntries.forEach(e=>toelichtingToevoegen(e.omschrijving));
+  save(); clearForm();
+  showToast('✓ Registratie opgeslagen','success');
+  renderDashboard(); renderOverzicht();
+}
+
+function clearForm(){
+  const d=document.getElementById('inp-datum');if(d)d.value='';
+  document.getElementById('dupWarning').style.display='none';
+  document.getElementById('entryRows').innerHTML='';
+  window.rowCount=0; addEntryRow('','','','',true);
+}
+
+// ══════════════════════════
+// DASHBOARD
+// ══════════════════════════
+function populateAllFilters(){
+  const dm=document.getElementById('dash-medewerker'),dk=document.getElementById('dash-klant');
+  if(dm)dm.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
+  if(dk)dk.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  const om=document.getElementById('ov-medewerker'),ok=document.getElementById('ov-klant');
+  if(om)om.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
+  if(ok)ok.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  const pkf=document.getElementById('proj-klant-filter');
+  if(pkf)pkf.innerHTML='<option value="">Alle klanten</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  const npk=document.getElementById('np-klant');
+  if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  buildProjCheckboxes();
+  updateNavClient();
+}
+
+function renderDashboard(){
+  const med=document.getElementById('dash-medewerker')?.value||'';
+  const klant=document.getElementById('dash-klant')?.value||'';
+  const per=dashPeriode();
+  const info=document.getElementById('dash-periode-info');
+  const filtered=entries.filter(e=>{
+    return(!med||e.userId==med)&&(!klant||e.klantId==klant)&&
+      (!per.van||e.datum>=per.van)&&(!per.tot||e.datum<=per.tot);
+  });
+  if(info)info.textContent=`${filtered.length} registraties · ${per.label}`;
+  window.dashFiltered=filtered;
+  const total=filtered.reduce((s,e)=>s+e.uren,0);
+  const days=new Set(filtered.map(e=>e.datum)).size;
+  const gem=days>0?(total/days).toFixed(1):0;
+  document.getElementById('dashStats').innerHTML=`
+    <div class="stat-card orange clickable" onclick="openDashDetail('stat-uren')"><div class="stat-label">Totaal uren</div><div class="stat-value">${total.toFixed(1)}</div><div class="stat-sub">klik voor verdeling ›</div></div>
+    <div class="stat-card dark clickable" onclick="openDashDetail('stat-dagen')"><div class="stat-label">Gewerkte dagen</div><div class="stat-value">${days}</div><div class="stat-sub">klik voor de dagen ›</div></div>
+    <div class="stat-card mid clickable" onclick="openDashDetail('stat-gem')"><div class="stat-label">Gem. per dag</div><div class="stat-value">${gem}</div><div class="stat-sub">klik per weekdag ›</div></div>`;
+
+  drawKlantPie(filtered);
+  renderProjPeriode(filtered,per.label);
+  renderDashDetail();
+
+  const weekM={};
+  filtered.forEach(e=>{const wk=getWeek(new Date(e.datum));weekM[wk]=(weekM[wk]||0)+e.uren;});
+  const weeks=Object.entries(weekM).sort((a,b)=>a[0]-b[0]).slice(-3);
+  const maxW=weeks.length?Math.max(...weeks.map(w=>w[1])):1;
+  document.getElementById('weekChart').innerHTML=weeks.length
+    ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);const act=dashDetail&&dashDetail.kind==='week'&&String(dashDetail.key)===String(wk);return`<div class="chart-col clickable${act?' actief':''}" onclick="openDashDetail('week',${wk})" title="Week ${wk} — ${u.toFixed(2)} u"><div class="chart-val">${u.toFixed(u%1?1:0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
+    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+
+  const maandAll=entries.filter(e=>(!med||e.userId==med)&&(!klant||e.klantId==klant));
+  const maandM={};
+  maandAll.forEach(e=>{const mo=e.datum.slice(0,7);maandM[mo]=(maandM[mo]||0)+e.uren;});
+  const maanden=Object.entries(maandM).sort((a,b)=>a[0].localeCompare(b[0]));
+  const maxM=maanden.length?Math.max(...maanden.map(m=>m[1])):1;
+  const mn=['Jan','Feb','Mrt','Apr','Mei','Jun','Jul','Aug','Sep','Okt','Nov','Dec'];
+  document.getElementById('maandChart').innerHTML=maanden.length
+    ?maanden.map(([ym,u])=>{const[yr,mo]=ym.split('-');const h=Math.round((u/maxM)*100);const isSel=!!(per.van&&per.tot&&ym>=per.van.slice(0,7)&&ym<=per.tot.slice(0,7));return`<div class="chart-col clickable${isSel?' actief':''}" onclick="kiesMaand('${ym}')" title="${mn[parseInt(mo)-1]} ${yr} — ${u.toFixed(2)} u — klik om te filteren"><div class="chart-val">${u.toFixed(u%1?1:0)}</div><div class="chart-bar ${isSel?'dark':''}" style="height:${h}px;"></div><div class="chart-label">${mn[parseInt(mo)-1]} ${yr.slice(2)}</div></div>`;}).join('')
+    :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
+}
+
+function renderTopProjChart(rijen,periodeLabel){
+  const box=document.getElementById('topProjChart');
+  const titel=document.getElementById('topProjTitle');
+  if(!box)return;
+  if(titel)titel.textContent=`Top 10 projecten — uren in ${periodeLabel||'de geselecteerde periode'}`;
+  const top=rijen.slice(0,10);
+  if(!top.length){box.innerHTML='<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';return;}
+  const max=top[0].uren||1;
+  box.innerHTML=top.map(r=>{
+    const h=Math.max(4,Math.round((r.uren/max)*100));
+    const act=dashDetail&&dashDetail.kind==='project'&&String(dashDetail.key)===String(r.id);
+    return`<div class="chart-col clickable${act?' actief':''}" onclick="openDashDetail('project',${r.id})" title="${escAttr(r.naam)} — ${r.uren.toFixed(2)} u (${r.klant}) — klik voor detail">
+      <div class="chart-val">${r.uren.toFixed(r.uren%1?1:0)}</div>
+      <div class="chart-bar" style="height:${h}px;"></div>
+      <div class="chart-label" style="max-width:100%;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${r.code}</div>
+    </div>`;
+  }).join('');
+}
+
+function renderProjPeriode(filtered,periodeLabel){
+  const agg={};
+  filtered.forEach(e=>{
+    if(!agg[e.projectId])agg[e.projectId]={uren:0,dagen:new Set()};
+    agg[e.projectId].uren+=e.uren;
+    agg[e.projectId].dagen.add(e.datum);
+  });
+  const rijen=Object.entries(agg).map(([pid,v])=>{
+    const p=projects.find(x=>x.id==pid);
+    const k=p?klanten.find(x=>x.id===p.klantId):null;
+    return {id:pid,naam:p?p.naam:'Onbekend project',code:p?(p.code||p.naam):'?',klant:k?k.naam:'—',uren:v.uren,dagen:v.dagen.size};
+  }).sort((a,b)=>b.uren-a.uren);
+  renderTopProjChart(rijen,periodeLabel);
+}
+
+function drawKlantPie(filtered){
+  const canvas=document.getElementById('klantPie');
+  const legend=document.getElementById('klantPieLegend');
+  if(!canvas||!legend)return;
+  const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,160,160);
+  const klantT={};
+  filtered.forEach(e=>{if(e.klantId)klantT[e.klantId]=(klantT[e.klantId]||0)+e.uren;});
+  const noKlant=filtered.filter(e=>!e.klantId).reduce((s,e)=>s+e.uren,0);
+  const data=[];
+  klanten.forEach(k=>{if(klantT[k.id])data.push({label:k.naam,value:klantT[k.id],klantId:k.id});});
+  if(noKlant>0)data.push({label:'Geen klant',value:noKlant,klantId:''});
+  const total=data.reduce((s,d)=>s+d.value,0);
+  if(!total){ctx.font='bold 12px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.textAlign='center';ctx.fillText('Geen data',80,85);legend.innerHTML='';return;}
+  let angle=-Math.PI/2;
+  const cx=80,cy=80,r=70;
+  window.pieSlices=[];
+  data.forEach((d,i)=>{
+    const slice=(d.value/total)*2*Math.PI;
+    ctx.beginPath();ctx.moveTo(cx,cy);ctx.arc(cx,cy,r,angle,angle+slice);ctx.closePath();
+    ctx.fillStyle=PIE_COLORS[i%PIE_COLORS.length];ctx.fill();
+    ctx.strokeStyle='white';ctx.lineWidth=2;ctx.stroke();
+    window.pieSlices.push({van:angle,tot:angle+slice,klantId:d.klantId||''});
+    angle+=slice;
+  });
+  ctx.beginPath();ctx.arc(cx,cy,40,0,2*Math.PI);ctx.fillStyle='white';ctx.fill();
+  ctx.font='bold 14px Nunito Sans,sans-serif';ctx.fillStyle='#2563EB';ctx.textAlign='center';
+  ctx.fillText(total.toFixed(0)+'u',cx,cy-4);
+  ctx.font='11px Nunito Sans,sans-serif';ctx.fillStyle='#8888a0';ctx.fillText('totaal',cx,cy+12);
+  legend.innerHTML=data.map((d,i)=>{
+    const pct=((d.value/total)*100).toFixed(0);
+    return`<div class="pie-legend-item clickable" onclick="kiesKlant('${d.klantId}')" title="Filter op ${escAttr(d.label)}"><div class="pie-dot" style="background:${PIE_COLORS[i%PIE_COLORS.length]};"></div><span>${d.label}</span><span class="pie-legend-pct">${pct}%</span><span style="font-size:11px;color:var(--gray-400);margin-left:4px;">${d.value.toFixed(1)}u</span></div>`;
+  }).join('');
+}
+
+// ── PERIODEKEUZE DASHBOARD ──
+const MAANDNAMEN=['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+function dIso(d){return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}
+function maandLabel(ym){const[y,m]=ym.split('-');return `${MAANDNAMEN[parseInt(m)-1]} ${y}`;}
+
+function dashPeriode(){
+  const modus=document.getElementById('dash-periode')?.value||'maand';
+  const nu=new Date();
+  const j=nu.getFullYear(), m=nu.getMonth();
+  const eersteVan=(y,mm)=>dIso(new Date(y,mm,1));
+  const laatsteVan=(y,mm)=>dIso(new Date(y,mm+1,0));
+  switch(modus){
+    case 'alles':      return {van:'',tot:'',label:'alle periodes'};
+    case 'maand':      return {van:eersteVan(j,m),tot:laatsteVan(j,m),label:maandLabel(`${j}-${String(m+1).padStart(2,'0')}`)};
+    case 'vorige':{
+      const d=new Date(j,m-1,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(d.getFullYear(),d.getMonth()),
+              label:maandLabel(`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`)};
+    }
+    case 'laatste3':{
+      const d=new Date(j,m-2,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(j,m),label:'de laatste 3 maanden'};
+    }
+    case 'laatste12':{
+      const d=new Date(j,m-11,1);
+      return {van:eersteVan(d.getFullYear(),d.getMonth()),tot:laatsteVan(j,m),label:'de laatste 12 maanden'};
+    }
+    case 'kwartaal':{
+      const start=Math.floor(m/3)*3;
+      return {van:eersteVan(j,start),tot:laatsteVan(j,start+2),label:`kwartaal ${Math.floor(m/3)+1} van ${j}`};
+    }
+    case 'jaar':       return {van:eersteVan(j,0),tot:laatsteVan(j,11),label:`${j}`};
+    case 'vorigjaar':  return {van:eersteVan(j-1,0),tot:laatsteVan(j-1,11),label:`${j-1}`};
+    case 'maandkeuze':{
+      const ym=document.getElementById('dash-maand')?.value||'';
+      if(!ym)return {van:'',tot:'',label:'alle periodes'};
+      const[y,mm]=ym.split('-').map(Number);
+      return {van:eersteVan(y,mm-1),tot:laatsteVan(y,mm-1),label:maandLabel(ym)};
+    }
+    case 'aangepast':{
+      const van=document.getElementById('dash-van')?.value||'';
+      const tot=document.getElementById('dash-tot')?.value||'';
+      const f=d=>new Date(d).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'});
+      let label='alle registraties';
+      if(van&&tot)label=`${f(van)} – ${f(tot)}`;
+      else if(van)label=`vanaf ${f(van)}`;
+      else if(tot)label=`tot en met ${f(tot)}`;
+      return {van,tot,label};
+    }
+  }
+  return {van:'',tot:'',label:'alle periodes'};
+}
+
+function periodeGewijzigd(){
+  const modus=document.getElementById('dash-periode').value;
+  const toon=(id,ja)=>{const el=document.getElementById(id);if(el)el.style.display=ja?'':'none';};
+  toon('dash-maand',modus==='maandkeuze');
+  ['dash-van-lbl','dash-van','dash-tot-lbl','dash-tot'].forEach(id=>toon(id,modus==='aangepast'));
+  const nu=new Date();
+  if(modus==='maandkeuze'){
+    const el=document.getElementById('dash-maand');
+    if(el&&!el.value)el.value=`${nu.getFullYear()}-${String(nu.getMonth()+1).padStart(2,'0')}`;
+  }
+  if(modus==='aangepast'){
+    const v=document.getElementById('dash-van'),t=document.getElementById('dash-tot');
+    if(v&&!v.value)v.value=dIso(new Date(nu.getFullYear(),nu.getMonth(),1));
+    if(t&&!t.value)t.value=dIso(nu);
+  }
+  renderDashboard();
+}
+
+// ── INTERACTIEF DASHBOARD ──
+let dashDetail=null;
+
+function kiesMaand(ym){
+  const sel=document.getElementById('dash-periode'),el=document.getElementById('dash-maand');
+  if(!sel||!el)return;
+  dashDetail=null;
+  if(sel.value==='maandkeuze'&&el.value===ym)sel.value='alles';
+  else {sel.value='maandkeuze';el.value=ym;}
+  periodeGewijzigd();
+}
+function kiesKlant(kid){
+  const el=document.getElementById('dash-klant');
+  if(!el)return;
+  el.value=(String(el.value)===String(kid))?'':String(kid);
+  renderDashboard();
+}
+function klantPieClick(ev){
+  const c=document.getElementById('klantPie');
+  const rect=c.getBoundingClientRect();
+  const x=(ev.clientX-rect.left)*(c.width/rect.width)-80;
+  const y=(ev.clientY-rect.top)*(c.height/rect.height)-80;
+  const afstand=Math.sqrt(x*x+y*y);
+  if(afstand<40){kiesKlant('');return;}          // binnenste cirkel = filter wissen
+  if(afstand>70||!window.pieSlices)return;
+  let hoek=Math.atan2(y,x);
+  if(hoek< -Math.PI/2)hoek+=2*Math.PI;
+  const sl=window.pieSlices.find(s=>hoek>=s.van&&hoek<s.tot);
+  if(sl)kiesKlant(sl.klantId);
+}
+
+function openDashDetail(kind,key){
+  if(dashDetail&&dashDetail.kind===kind&&String(dashDetail.key)===String(key)){closeDashDetail();return;}
+  dashDetail={kind,key};
+  renderDashboard();
+  const el=document.getElementById('dashDetail');
+  if(el){
+    const r=el.getBoundingClientRect();
+    if(r.top<90||r.top>window.innerHeight-120){
+      window.scrollTo({top:r.top+window.scrollY-92,behavior:'smooth'});
+    }
+  }
+}
+function closeDashDetail(){dashDetail=null;renderDashboard();}
+
+function detBalkRij(label,uren,max,extra=''){
+  const b=max?Math.max(2,Math.round((uren/max)*100)):0;
+  return`<div class="det-row">
+    <div>${label}${extra?`<span style="font-size:11px;color:var(--gray-400);"> ${extra}</span>`:''}</div>
+    <div class="det-bar"><div style="width:${b}%;"></div></div>
+    <div class="det-uren">${uren.toFixed(2)} u</div>
+  </div>`;
+}
+function detDatum(d){return new Date(d).toLocaleDateString('nl-BE',{weekday:'short',day:'2-digit',month:'short'});}
+function detRegels(lijst,toonProject){
+  return`<div class="det-list">${lijst.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId);
+    const stukken=[e.type||'',e.omschrijving||''].filter(Boolean).join(' — ');
+    return`<div class="det-li"><span class="dd">${detDatum(e.datum)}</span><span class="dt">${toonProject?`<strong>${p?p.naam:'?'}</strong>${stukken?' · ':''}`:''}${stukken||'<span style="color:var(--gray-300);">geen omschrijving</span>'}</span><span class="du">${e.uren.toFixed(2)} u</span></div>`;
+  }).join('')}</div>`;
+}
+
+function renderDashDetail(){
+  const box=document.getElementById('dashDetail');
+  if(!box)return;
+  if(!dashDetail){box.style.display='none';box.innerHTML='';return;}
+  const filtered=window.dashFiltered||[];
+  const totaalAlles=filtered.reduce((s,e)=>s+e.uren,0);
+  let titel='',sub='',kpis=[],body='',acties='';
+
+  if(dashDetail.kind==='project'){
+    const pid=parseInt(dashDetail.key);
+    const p=projects.find(x=>x.id===pid);
+    const k=p?klanten.find(x=>x.id===p.klantId):null;
+    const rows=filtered.filter(e=>e.projectId===pid);
+    if(!rows.length){dashDetail=null;box.style.display='none';return;}
+    const tot=rows.reduce((s,e)=>s+e.uren,0);
+    const dagen=new Set(rows.map(e=>e.datum)).size;
+    titel=p?p.naam:'Onbekend project';
+    sub=`${k?k.naam:'geen klant'}${p&&p.code?' · '+p.code:''}`;
+    kpis=[['Uren',tot.toFixed(2)],['Dagen',dagen],['Gem./dag',(tot/dagen).toFixed(2)],['Aandeel',totaalAlles?((tot/totaalAlles)*100).toFixed(0)+'%':'—']];
+    const perType={};
+    rows.forEach(e=>{const t=e.type||'Zonder omschrijving';perType[t]=(perType[t]||0)+e.uren;});
+    const st=Object.entries(perType).sort((a,b)=>b[1]-a[1]);
+    const maxT=st.length?st[0][1]:1;
+    body+=`<div class="det-sect">Verdeling per omschrijving</div><div class="det-rows">${st.map(([t,u])=>detBalkRij(t,u,maxT)).join('')}</div>`;
+    const laatste=rows.slice().sort((a,b)=>b.datum.localeCompare(a.datum)).slice(0,8);
+    body+=`<div class="det-sect">Laatste registraties</div>${detRegels(laatste,false)}`;
+    acties=`<button class="btn btn-ghost btn-sm" onclick="toonInOverzicht(${pid})">📋 Toon in overzicht</button>`;
+  }
+
+  else if(dashDetail.kind==='week'){
+    const wk=parseInt(dashDetail.key);
+    const rows=filtered.filter(e=>getWeek(new Date(e.datum))===wk);
+    if(!rows.length){dashDetail=null;box.style.display='none';return;}
+    const tot=rows.reduce((s,e)=>s+e.uren,0);
+    const dagen=new Set(rows.map(e=>e.datum)).size;
+    const data=rows.map(e=>e.datum).sort();
+    titel=`Week ${wk}`;
+    sub=`${detDatum(data[0])} – ${detDatum(data[data.length-1])}`;
+    kpis=[['Uren',tot.toFixed(2)],['Dagen',dagen],['Gem./dag',(tot/dagen).toFixed(2)],['Registraties',rows.length]];
+    const perProj={};
+    rows.forEach(e=>{perProj[e.projectId]=(perProj[e.projectId]||0)+e.uren;});
+    const sp=Object.entries(perProj).sort((a,b)=>b[1]-a[1]);
+    const maxP=sp.length?sp[0][1]:1;
+    body+=`<div class="det-sect">Uren per project</div><div class="det-rows">${sp.map(([pid,u])=>{const p=projects.find(x=>x.id==pid);return detBalkRij(p?p.naam:'Onbekend',u,maxP);}).join('')}</div>`;
+    const perDag={};
+    rows.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const sd=Object.entries(perDag).sort((a,b)=>a[0].localeCompare(b[0]));
+    const maxD=Math.max(...sd.map(d=>d[1]));
+    body+=`<div class="det-sect">Per dag</div><div class="det-rows">${sd.map(([d,u])=>detBalkRij(detDatum(d),u,maxD)).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-uren'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    titel='Totaal uren';sub='verdeling van de geselecteerde periode';
+    kpis=[['Uren',totaalAlles.toFixed(2)],['Registraties',filtered.length]];
+    const perMed={},perKlant={};
+    filtered.forEach(e=>{perMed[e.userId]=(perMed[e.userId]||0)+e.uren;perKlant[e.klantId||'']=(perKlant[e.klantId||'']||0)+e.uren;});
+    const sm=Object.entries(perMed).sort((a,b)=>b[1]-a[1]);
+    const maxM2=sm.length?sm[0][1]:1;
+    body+=`<div class="det-sect">Per medewerker</div><div class="det-rows">${sm.map(([uid,u])=>{const usr=users.find(x=>x.id==uid);return detBalkRij(usr?usr.naam:'?',u,maxM2);}).join('')}</div>`;
+    const sk=Object.entries(perKlant).sort((a,b)=>b[1]-a[1]);
+    const maxK=sk.length?sk[0][1]:1;
+    body+=`<div class="det-sect">Per klant</div><div class="det-rows">${sk.map(([kid,u])=>{const kl=klanten.find(x=>x.id==kid);return detBalkRij(kl?kl.naam:'Geen klant',u,maxK);}).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-dagen'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    const perDag={};
+    filtered.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const sd=Object.entries(perDag).sort((a,b)=>b[0].localeCompare(a[0]));
+    const maxD=Math.max(...sd.map(d=>d[1]));
+    titel='Gewerkte dagen';sub=`${sd.length} dagen met registratie`;
+    const onder8=sd.filter(d=>d[1]<8).length;
+    kpis=[['Dagen',sd.length],['Uren',totaalAlles.toFixed(2)],['Dagen < 8u',onder8],['Beste dag',Math.max(...sd.map(d=>d[1])).toFixed(2)]];
+    body+=`<div class="det-sect">Uren per dag (recentste eerst)</div><div class="det-rows">${sd.slice(0,31).map(([d,u])=>detBalkRij(detDatum(d),u,maxD)).join('')}</div>`;
+  }
+
+  else if(dashDetail.kind==='stat-gem'){
+    if(!filtered.length){dashDetail=null;box.style.display='none';return;}
+    const dagNamen=['zondag','maandag','dinsdag','woensdag','donderdag','vrijdag','zaterdag'];
+    const perDag={};
+    filtered.forEach(e=>{perDag[e.datum]=(perDag[e.datum]||0)+e.uren;});
+    const perWd={};
+    Object.entries(perDag).forEach(([d,u])=>{const wd=new Date(d).getDay();if(!perWd[wd])perWd[wd]={uren:0,dagen:0};perWd[wd].uren+=u;perWd[wd].dagen++;});
+    const volgorde=[1,2,3,4,5,6,0].filter(i=>perWd[i]);
+    const maxG=Math.max(...volgorde.map(i=>perWd[i].uren/perWd[i].dagen));
+    const dagenTot=Object.keys(perDag).length;
+    titel='Gemiddelde per dag';sub='op basis van dagen met registratie';
+    kpis=[['Gem./dag',(totaalAlles/dagenTot).toFixed(2)],['Gem./week',(totaalAlles/Math.max(1,new Set(filtered.map(e=>getWeek(new Date(e.datum)))).size)).toFixed(2)],['Dagen',dagenTot]];
+    body+=`<div class="det-sect">Gemiddelde per weekdag</div><div class="det-rows">${volgorde.map(i=>detBalkRij(dagNamen[i],perWd[i].uren/perWd[i].dagen,maxG,`(${perWd[i].dagen}d)`)).join('')}</div>`;
+  }
+
+  box.style.display='block';
+  box.innerHTML=`
+    <div class="det-head">
+      <div><div class="det-title">${titel}</div><div class="det-sub">${sub}</div></div>
+      <div style="display:flex;gap:8px;align-items:center;">${acties}<button class="btn btn-ghost btn-sm" onclick="closeDashDetail()">✕</button></div>
+    </div>
+    <div class="det-kpis">${kpis.map(([l,v])=>`<div class="det-kpi"><div class="det-kpi-label">${l}</div><div class="det-kpi-val">${v}</div></div>`).join('')}</div>
+    ${body}`;
+}
+
+function toonInOverzicht(pid){
+  const tab=[...document.querySelectorAll('.nav-tab')].find(t=>t.textContent.includes('Overzicht'));
+  showPage('overzicht',tab);
+  document.querySelectorAll('.proj-filter-cb').forEach(cb=>{cb.checked=(String(cb.value)===String(pid));});
+  updateProjLabel();
+  const per=dashPeriode();
+  const dmed=document.getElementById('dash-medewerker')?.value||'';
+  const dk=document.getElementById('dash-klant')?.value||'';
+  const omed=document.getElementById('ov-medewerker');if(omed)omed.value=dmed;
+  const okl=document.getElementById('ov-klant');if(okl)okl.value=dk;
+  const om=document.getElementById('ov-maand');if(om)om.value='';
+  const ov=document.getElementById('ov-van');if(ov)ov.value=per.van||'';
+  const ot=document.getElementById('ov-tot');if(ot)ot.value=per.tot||'';
+  renderOverzicht();
+}
+
+function clearDashFilter(){
+  ['dash-medewerker','dash-klant','dash-van','dash-tot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});
+  const sel=document.getElementById('dash-periode');if(sel)sel.value='maand';
+  dashDetail=null;
+  periodeGewijzigd();
+}
+
+function getWeek(d){
+  d=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));
+  d.setUTCDate(d.getUTCDate()+4-(d.getUTCDay()||7));
+  const ys=new Date(Date.UTC(d.getUTCFullYear(),0,1));
+  return Math.ceil((((d-ys)/86400000)+1)/7);
+}
+
+// ══════════════════════════
+// OVERZICHT
+// ══════════════════════════
+function buildProjCheckboxes(){
+  const c=document.getElementById('proj-filter-checkboxes');if(!c)return;
+  c.innerHTML=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl')).map(p=>`
+    <label style="display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--gray-700);"
+      onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
+      <input type="checkbox" class="proj-filter-cb" value="${p.id}" onchange="renderOverzicht();updateProjLabel()"
+        style="width:15px;height:15px;cursor:pointer;accent-color:var(--secondary);">
+      <span>${p.naam}</span>${!p.actief?'<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(inactief)</span>':''}
+    </label>`).join('');
+}
+
+function toggleProjDropdown(){const dd=document.getElementById('proj-filter-dropdown');dd.style.display=dd.style.display==='none'?'block':'none';}
+function updateProjLabel(){const checked=[...document.querySelectorAll('.proj-filter-cb:checked')];const btn=document.getElementById('proj-filter-label');if(!btn)return;if(!checked.length){btn.textContent='Alle projecten';return;}if(checked.length===1){const p=projects.find(x=>x.id==checked[0].value);btn.textContent=p?p.naam:'1 project';}else btn.textContent=checked.length+' projecten';}
+function selectAllProjects(){document.querySelectorAll('.proj-filter-cb').forEach(cb=>cb.checked=true);updateProjLabel();renderOverzicht();}
+function deselectAllProjects(){document.querySelectorAll('.proj-filter-cb').forEach(cb=>cb.checked=false);updateProjLabel();renderOverzicht();}
+
+document.addEventListener('click',function(e){
+  const dd=document.getElementById('proj-filter-dropdown'),btn=document.getElementById('proj-filter-btn');
+  if(dd&&btn&&!dd.contains(e.target)&&!btn.contains(e.target))dd.style.display='none';
+});
+
+function renderOverzicht(){
+  const checked=[...document.querySelectorAll('.proj-filter-cb:checked')].map(cb=>parseInt(cb.value));
+  const med=document.getElementById('ov-medewerker')?.value||'';
+  const klant=document.getElementById('ov-klant')?.value||'';
+  const maand=document.getElementById('ov-maand')?.value||'';
+  const van=document.getElementById('ov-van')?.value||'';
+  const tot=document.getElementById('ov-tot')?.value||'';
+  let filtered=entries.filter(e=>{
+    return(!checked.length||checked.includes(e.projectId))&&
+      (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!med||e.userId==med)&&(!klant||e.klantId==klant);
+  }).sort((a,b)=>b.datum.localeCompare(a.datum));
+  const bar=document.getElementById('ov-totaal-bar');
+  if(filtered.length&&bar){const t=filtered.reduce((s,e)=>s+e.uren,0);const d=new Set(filtered.map(e=>e.datum)).size;bar.style.display='block';bar.innerHTML=`📊 <strong>${filtered.length}</strong> registraties &nbsp;·&nbsp; <strong>${d}</strong> dagen &nbsp;·&nbsp; Totaal: <strong>${t.toFixed(2)} uur</strong>`;}
+  else if(bar)bar.style.display='none';
+  const tbody=document.getElementById('overzichtTable');if(!tbody)return;
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="8"><div class="empty"><div class="empty-icon">📋</div><h3>Geen registraties</h3></div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId);
+    const u=users.find(x=>x.id===e.userId);
+    const k=klanten.find(x=>x.id===e.klantId);
+    const ds=new Date(e.datum).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'});
+    return`<tr>
+      <td style="white-space:nowrap;font-weight:700;">${ds}</td>
+      <td><span class="badge badge-dark">${u?u.initials:'?'}</span></td>
+      <td style="font-size:12px;color:var(--gray-500);">${k?k.naam:'—'}</td>
+      <td><span class="badge badge-blue">${p?p.naam:'Onbekend'}</span></td>
+      <td style="white-space:nowrap;">${e.type?`<span class="badge badge-orange">${e.type}</span>`:'<span style="color:var(--gray-300);">—</span>'}</td>
+      <td style="color:var(--gray-500);font-size:12px;max-width:260px;">${e.omschrijving||'—'}</td>
+      <td style="font-weight:800;color:var(--secondary);white-space:nowrap;">${e.uren.toFixed(2)} u</td>
+      <td><button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">✕</button></td>
+    </tr>`;
+  }).join('');
+}
+
+function syncMaandToPeriod(){const m=document.getElementById('ov-maand')?.value;if(m){['ov-van','ov-tot'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});}}
+function clearMaand(){const m=document.getElementById('ov-maand');if(m)m.value='';}
+function deleteEntry(id){if(!confirm('Verwijderen?'))return;entries=entries.filter(e=>e.id!==id);save();renderOverzicht();renderDashboard();showToast('Verwijderd','warn');}
+function clearOvFilters(){deselectAllProjects();['ov-maand','ov-van','ov-tot','ov-medewerker','ov-klant'].forEach(id=>{const el=document.getElementById(id);if(el)el.value='';});renderOverzicht();}
+
+// ══════════════════════════
+// PROJECTEN & KLANTEN
+// ══════════════════════════
+function renderProjecten(){
+  const cc=document.getElementById('klantCards');
+  if(cc)cc.innerHTML=klanten.length
+    ?klanten.map(k=>`
+      <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border:1.5px solid ${k.actief?'var(--secondary)':'var(--border)'};border-radius:10px;background:${k.actief?'var(--secondary-light)':'white'};">
+        <span style="font-size:14px;font-weight:700;color:var(--dark);">${k.naam}</span>
+        <button class="toggle ${k.actief?'on':''}" onclick="toggleKlant(${k.id})" title="${k.actief?'Zet inactief':'Zet actief'}"></button>
+        <button class="btn btn-danger btn-sm" onclick="deleteKlant(${k.id})">✕</button>
+      </div>`).join('')
+    :'<span style="font-size:13px;color:var(--gray-400);">Nog geen klanten. Klik op + Klant toevoegen.</span>';
+
+  const klantF=document.getElementById('proj-klant-filter')?.value||'';
+  const statusF=document.getElementById('proj-status-filter')?.value||'all';
+  let list=projects.filter(p=>(!klantF||p.klantId==klantF)&&(statusF==='all'||(statusF==='active'&&p.actief)||(statusF==='inactive'&&!p.actief)));
+  list=list.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+
+  document.getElementById('projectenTable').innerHTML=list.map(p=>{
+    const total=entries.filter(e=>e.projectId===p.id).reduce((s,e)=>s+e.uren,0);
+    const k=klanten.find(x=>x.id===p.klantId);
+    return`<tr id="proj-row-${p.id}">
+      <td><strong>${p.naam}</strong></td>
+      <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code></td>
+      <td>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</td>
+      <td style="font-weight:700;">${total.toFixed(1)} u</td>
+      <td><div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div></td>
+      <td style="display:flex;gap:6px;flex-wrap:wrap;">
+        <button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button>
+      </td>
+    </tr>
+    <tr id="proj-edit-${p.id}" style="display:none;background:var(--gray-50);">
+      <td colspan="6" style="padding:10px 14px;">
+        <div style="display:flex;gap:10px;align-items:flex-end;flex-wrap:wrap;">
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Naam</label><input type="text" id="edit-naam-${p.id}" value="${p.naam}" style="max-width:200px;"></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Code</label><input type="text" id="edit-code-${p.id}" value="${p.code}" style="max-width:120px;"></div>
+          <div style="display:flex;flex-direction:column;gap:4px;"><label>Klant</label>
+            <select id="edit-klant-${p.id}" style="max-width:200px;">
+              <option value="">Geen klant</option>
+              ${klanten.map(k=>`<option value="${k.id}" ${k.id===p.klantId?'selected':''}>${k.naam}</option>`).join('')}
+            </select>
+          </div>
+          <button class="btn btn-primary btn-sm" onclick="saveEdit(${p.id})">✓ Opslaan</button>
+          <button class="btn btn-ghost btn-sm" onclick="cancelEdit(${p.id})">Annuleren</button>
+        </div>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+function startEdit(id){document.getElementById(`proj-edit-${id}`).style.display='table-row';document.getElementById(`edit-naam-${id}`).focus();}
+function cancelEdit(id){document.getElementById(`proj-edit-${id}`).style.display='none';}
+function saveEdit(id){
+  const p=projects.find(x=>x.id===id);
+  const n=document.getElementById(`edit-naam-${id}`).value.trim();
+  const c=document.getElementById(`edit-code-${id}`).value.trim();
+  const kv=document.getElementById(`edit-klant-${id}`).value;
+  if(!n){showToast('Naam mag niet leeg zijn','error');return;}
+  p.naam=n;if(c)p.code=c;p.klantId=kv?parseInt(kv):null;
+  projects.sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  refreshAllDropdowns();save();renderProjecten();
+  showToast('Project bijgewerkt','success');
+}
+
+function toggleProject(id){const p=projects.find(x=>x.id===id);if(p){p.actief=!p.actief;refreshAllDropdowns();save();renderProjecten();showToast(`${p.naam} is nu ${p.actief?'actief':'inactief'}`,'success');}}
+function deleteProject(id){const p=projects.find(x=>x.id===id);if(!confirm(`"${p.naam}" verwijderen?`))return;projects=projects.filter(x=>x.id!==id);save();refreshAllDropdowns();renderProjecten();showToast('Project verwijderd','warn');}
+
+function showAddProject(){document.getElementById('addProjectForm').style.display='block';const npk=document.getElementById('np-klant');if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');}
+function hideAddProject(){document.getElementById('addProjectForm').style.display='none';['np-naam','np-code'].forEach(id=>document.getElementById(id).value='');}
+
+function addProject(){
+  const naam=document.getElementById('np-naam').value.trim();
+  const klantVal=document.getElementById('np-klant').value;
+  if(!naam){document.getElementById('err-np-naam').classList.add('show');return;}
+  document.getElementById('err-np-naam').classList.remove('show');
+  const code=document.getElementById('np-code').value.trim()||naam.toUpperCase().replace(/\s+/g,'_').slice(0,10);
+  projects.push({id:nextProjId++,naam,code,klantId:klantVal?parseInt(klantVal):null,actief:true});
+  projects.sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  hideAddProject();refreshAllDropdowns();save();renderProjecten();
+  showToast(`"${naam}" toegevoegd`,'success');
+}
+
+function showAddKlant(){document.getElementById('addKlantForm').style.display='block';document.getElementById('nk-naam').focus();}
+function hideAddKlant(){document.getElementById('addKlantForm').style.display='none';document.getElementById('nk-naam').value='';}
+function addKlant(){
+  const naam=document.getElementById('nk-naam').value.trim();
+  if(!naam){document.getElementById('err-nk-naam').classList.add('show');return;}
+  document.getElementById('err-nk-naam').classList.remove('show');
+  klanten.push({id:nextKlantId++,naam,actief:true});
+  hideAddKlant();save();populateAllFilters();renderProjecten();
+  showToast(`${naam} toegevoegd`,'success');
+}
+function toggleKlant(id){const k=klanten.find(x=>x.id===id);if(k){k.actief=!k.actief;save();renderProjecten();updateNavClient();showToast(`${k.naam} is nu ${k.actief?'actief':'inactief'}`,'success');}}
+function deleteKlant(id){const k=klanten.find(x=>x.id===id);if(!confirm(`"${k.naam}" verwijderen?`))return;klanten=klanten.filter(x=>x.id!==id);projects.forEach(p=>{if(p.klantId===id)p.klantId=null;});save();populateAllFilters();renderProjecten();updateNavClient();showToast('Klant verwijderd','warn');}
+
+function refreshAllDropdowns(){
+  buildProjCheckboxes();
+}
+
+// ══════════════════════════
+// EXPORT
+// ══════════════════════════
+function getFilteredForExport(){
+  const checked=[...document.querySelectorAll('.proj-filter-cb:checked')].map(cb=>parseInt(cb.value));
+  const med=document.getElementById('ov-medewerker')?.value||'';
+  const klant=document.getElementById('ov-klant')?.value||'';
+  const maand=document.getElementById('ov-maand')?.value||'';
+  const van=document.getElementById('ov-van')?.value||'';
+  const tot=document.getElementById('ov-tot')?.value||'';
+  return entries.filter(e=>{
+    return(!checked.length||checked.includes(e.projectId))&&
+      (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
+      (!med||e.userId==med)&&(!klant||e.klantId==klant);
+  }).sort((a,b)=>a.datum.localeCompare(b.datum));
+}
+function exportCSV(onlyFiltered=false){
+  const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  const rows=[['Datum','Medewerker','Klant','Project','Omschrijving','Toelichting','Uren']];
+  data.forEach(e=>{
+    const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
+    rows.push([e.datum,u?u.naam:'',k?k.naam:'',p?p.naam:'',`"${(e.type||'').replace(/"/g,'""')}"`,`"${(e.omschrijving||'').replace(/"/g,'""')}"`,e.uren]);
+  });
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob(['﻿'+rows.map(r=>r.join(',')).join('\n')],{type:'text/csv;charset=utf-8;'}));
+  a.download=onlyFiltered?'uren_selectie.csv':'uren_alles.csv';a.click();
+  showToast(`CSV geëxporteerd (${data.length} rijen)`,'success');
+}
+function exportExcel(onlyFiltered=false){
+  const data=onlyFiltered?getFilteredForExport():entries.slice().sort((a,b)=>a.datum.localeCompare(b.datum));
+  const h=['Datum','Medewerker','Klant','Project','Omschrijving','Toelichting','Uren'];
+  const rows=data.map(e=>{
+    const p=projects.find(x=>x.id===e.projectId),u=users.find(x=>x.id===e.userId),k=klanten.find(x=>x.id===e.klantId);
+    return`<tr><td>${e.datum}</td><td>${u?u.naam:''}</td><td>${k?k.naam:''}</td><td>${p?p.naam:''}</td><td>${e.type||''}</td><td>${e.omschrijving||''}</td><td>${e.uren}</td></tr>`;
+  }).join('');
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([`<html xmlns:x="urn:schemas-microsoft-com:office:excel"><head><meta charset="utf-8"></head><body><table><thead><tr>${h.map(x=>`<th>${x}</th>`).join('')}</tr></thead><tbody>${rows}</tbody></table></body></html>`],{type:'application/vnd.ms-excel;charset=utf-8;'}));
+  a.download=onlyFiltered?'uren_selectie.xls':'uren_alles.xls';a.click();
+  showToast(`Excel geëxporteerd (${data.length} rijen)`,'success');
+}
+
+// ══════════════════════════
+// TOAST
+// ══════════════════════════
+let toastTimer;
+function showToast(msg,type='success'){
+  const t=document.getElementById('toast');t.textContent=msg;t.className=`toast ${type} show`;
+  clearTimeout(toastTimer);toastTimer=setTimeout(()=>t.classList.remove('show'),3000);
 }
 </script>
 </body>
