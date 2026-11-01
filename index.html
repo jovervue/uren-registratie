@@ -2,7 +2,12 @@
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<meta name="theme-color" content="#1E3A8A">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Uren">
 <title>Urenregistratie – CvoorU</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito+Sans:ital,wght@0,300;0,400;0,600;0,700;0,800;0,900;1,400&display=swap" rel="stylesheet">
 <!-- Firebase v9 compat (geen module, werkt met globale variabelen) -->
@@ -101,7 +106,7 @@
   textarea{resize:vertical;min-height:52px;}
 
   .entry-rows{display:flex;flex-direction:column;gap:10px;}
-  .entry-row{display:grid;grid-template-columns:200px 190px 1fr 84px 34px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
+  .entry-row{display:grid;grid-template-columns:240px 1fr 84px 34px;gap:10px;align-items:start;background:var(--gray-50);border:1.5px solid var(--gray-200);border-radius:10px;padding:12px 14px;}
   .entry-row select,.entry-row textarea,.entry-row input{font-size:13px;padding:7px 10px;}
   .entry-row textarea{min-height:52px;}
   .entry-row-remove{background:var(--red-light);border:none;color:var(--red);border-radius:6px;width:32px;height:32px;cursor:pointer;font-size:14px;display:flex;align-items:center;justify-content:center;margin-top:2px;transition:background .15s;}
@@ -230,6 +235,97 @@
     .entry-row>div{grid-column:1;}
     .entry-row-remove{grid-column:2;grid-row:1;}
   }
+  /* ══ SMARTPHONE ══ */
+  td.mcell{display:none;}
+  .fr-toggle{display:none !important;}
+  .nt-svg{display:none;}
+  @media(max-width:768px){
+    body{font-size:15px;}
+    html,body{overflow-x:hidden;}
+    .nav{flex-wrap:wrap;height:auto;padding:env(safe-area-inset-top) 14px 0;gap:0 10px;}
+    .nav-brand{height:56px;}
+    .nav-user{height:56px;}
+    .nav-hide-m{display:none !important;}
+    .nav-tabs{order:3;flex:0 0 calc(100% + 28px);margin:0 -14px;background:white;border-bottom:1px solid var(--border);padding:0 4px;gap:0;}
+    .nav-tab{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;min-height:52px;padding:6px 2px 5px;color:var(--gray-400);font-size:11.5px;font-weight:800;border-radius:0;-webkit-tap-highlight-color:transparent;}
+    .nav-tab .nt-ic{display:none;}
+    .nav-tab .nt-svg{display:block;width:22px;height:22px;transition:transform .15s;}
+    .nav-tab:hover{background:none;color:var(--gray-400);}
+    .nav-tab:active .nt-svg{transform:scale(.9);}
+    .nav-tab.active,.nav-tab.active:hover{background:none;color:var(--secondary);}
+    .nav-tab.active::after{content:'';position:absolute;bottom:0;left:18%;right:18%;height:3px;border-radius:3px 3px 0 0;background:var(--secondary);}
+    .nav-username{max-width:120px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+    .sync-bar{top:calc(109px + env(safe-area-inset-top));}
+    .toast{left:16px;right:16px;bottom:calc(84px + env(safe-area-inset-bottom));text-align:center;}
+    .modal{width:auto;max-width:calc(100vw - 32px);padding:24px 20px;max-height:85vh;overflow-y:auto;}
+
+    .page{padding:16px 14px;}
+    .page-header{flex-wrap:wrap;gap:10px;margin-bottom:16px;}
+    .page-header>div:last-child{flex-wrap:wrap;}
+    .page-header h1{font-size:20px;}
+    .card{padding:16px 14px;}
+
+    input,select,textarea{font-size:16px;padding:11px 12px;}
+    .entry-row select,.entry-row textarea,.entry-row input{font-size:16px;padding:10px 12px;}
+    .row-uren{font-size:18px !important;font-weight:800;}
+    .entry-row-remove{width:36px;height:36px;}
+    .datum-grid{grid-template-columns:1fr !important;gap:0 !important;}
+    .add-row-btn{width:100%;justify-content:center;padding:12px;font-size:14px;}
+    .invoer-actions{position:sticky;bottom:0;padding-bottom:calc(10px + env(safe-area-inset-bottom)) !important;z-index:60;margin:16px -14px 0;padding:10px 14px;background:rgba(248,250,252,.96);backdrop-filter:blur(6px);border-top:1px solid var(--border);}
+    .invoer-actions .btn{flex:1;justify-content:center;padding:13px;font-size:15px;}
+    .invoer-actions .btn-primary{flex:2;}
+    .btn{padding:10px 16px;}
+    .btn-sm{padding:7px 12px;font-size:12.5px;}
+
+    .filter-row{display:grid;grid-template-columns:auto 1fr;gap:8px 10px;align-items:center;}
+    .filter-row select,.filter-row input,.filter-row .fr-projwrap{max-width:none !important;width:100%;padding:10px 12px;font-size:16px;}
+    .filter-row .fr-c2{grid-column:2;}
+    .filter-row .fr-full{grid-column:1/-1;}
+    .filter-row .fr-clear{grid-column:1/-1;justify-self:start;}
+    .filter-row .fr-projwrap{padding:0;}
+    #proj-filter-btn{font-size:15px !important;padding:10px 12px !important;}
+
+    .stats-row{grid-template-columns:repeat(3,1fr) !important;gap:8px;margin-bottom:16px;}
+    .stat-card{padding:12px 10px;}
+    .stat-label{font-size:8.5px;letter-spacing:.6px;}
+    .stat-value{font-size:22px;}
+    .stat-sub{font-size:10px;}
+    .two-col,.three-col{grid-template-columns:1fr !important;gap:16px;}
+    .two-col.mb-20{margin-bottom:16px;}
+    .pie-wrap{flex-direction:column;align-items:stretch;gap:16px;}
+    .pie-wrap canvas{align-self:center;}
+    .chart-bars{overflow-x:auto;}
+    .chart-col{min-width:28px;}
+    .chart-label{font-size:9px;word-break:break-word;}
+    .det-head{flex-wrap:wrap;}
+
+    .table-wrap{overflow:visible;}
+    .table-wrap thead{display:none;}
+    .table-wrap table,.table-wrap tbody{display:block;}
+    tr.drow{display:block;border:1.5px solid var(--border) !important;border-radius:10px;margin-bottom:10px;background:white;}
+    tr.drow:hover{background:white;}
+    tr.drow>td:not(.mcell){display:none !important;}
+    tr.drow>td.mcell{display:block;padding:12px 14px;}
+    tbody tr:not(.drow){display:block;}
+    tbody tr:not(.drow)>td{display:block;}
+    .mc-top{display:flex;align-items:center;gap:10px;}
+    .mc-title{flex:1;font-weight:800;color:var(--dark);font-size:15px;}
+    .mc-uren{font-weight:900;color:var(--secondary);font-size:16px;white-space:nowrap;}
+    .mc-tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:8px;}
+    .mc-meta{font-size:12px;color:var(--gray-400);font-weight:700;}
+    .mc-text{margin-top:8px;font-size:13px;color:var(--gray-500);line-height:1.4;}
+    .mc-actions{display:flex;align-items:center;gap:8px;margin-top:10px;padding-top:10px;border-top:1px solid var(--gray-100);}
+    tr[id^="proj-edit-"]{border-radius:10px;margin:-6px 0 10px;}
+    tr[id^="proj-edit-"] input,tr[id^="proj-edit-"] select{max-width:none !important;}
+    tr[id^="proj-edit-"] div[style*="flex-direction:column"]{flex:1 1 100%;}
+    #klantCards>div{flex:1 1 100%;}
+    #klantCards>div>span{flex:1;}
+    #addProjectForm>div[style*="grid"],#addKlantForm>div[style*="grid"]{grid-template-columns:1fr !important;}
+    .fr-toggle{display:flex !important;justify-content:space-between;width:100%;padding:11px 14px;font-size:14px;}
+    .ov-filters:not(.open) .filter-row{display:none;}
+    .ov-filters.open .fr-arrow{transform:rotate(180deg);}
+    .fr-arrow{display:inline-block;transition:transform .15s;}
+  }
 </style>
 </head>
 <body>
@@ -271,16 +367,16 @@
     </div>
   </div>
 
-  <div class="nav-divider"></div>
-  <div style="display:flex;flex-direction:column;line-height:1.3;">
+  <div class="nav-divider nav-hide-m"></div>
+  <div class="nav-hide-m" style="display:flex;flex-direction:column;line-height:1.3;">
     <span style="font-size:11px;font-weight:900;letter-spacing:2px;text-transform:uppercase;color:white;">URENREGISTRATIE</span>
   </div>
 
   <div class="nav-tabs">
-    <button class="nav-tab active" onclick="showPage('invoer',this)">📝 Invoer</button>
-    <button class="nav-tab" onclick="showPage('dashboard',this)">📊 Dashboard</button>
-    <button class="nav-tab" onclick="showPage('overzicht',this)">📋 Overzicht</button>
-    <button class="nav-tab" onclick="showPage('projecten',this)">🗂 Projecten</button>
+    <button class="nav-tab active" onclick="showPage('invoer',this)"><span class="nt-ic">📝</span><svg class="nt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg> <span class="nt-lb">Invoer</span></button>
+    <button class="nav-tab" onclick="showPage('dashboard',this)"><span class="nt-ic">📊</span><svg class="nt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><rect x="7" y="12" width="3" height="6" rx="1"/><rect x="12" y="8" width="3" height="10" rx="1"/><rect x="17" y="5" width="3" height="13" rx="1"/></svg> <span class="nt-lb">Dashboard</span></button>
+    <button class="nav-tab" onclick="showPage('overzicht',this)"><span class="nt-ic">📋</span><svg class="nt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M9 8h6M9 12h6M9 16h4"/></svg> <span class="nt-lb">Overzicht</span></button>
+    <button class="nav-tab" onclick="showPage('projecten',this)"><span class="nt-ic">🗂</span><svg class="nt-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2Z"/></svg> <span class="nt-lb">Projecten</span></button>
   </div>
 
   <div class="nav-user" onclick="openUserModal()">
@@ -294,14 +390,13 @@
   <div class="page-header">
     <div>
       <h1>Uren Invoeren</h1>
-      <p id="invoer-sub" style="font-weight:900;letter-spacing:1.5px;text-transform:uppercase;font-size:12px;color:var(--secondary);">URENREGISTRATIE</p>
     </div>
     <button class="btn btn-ghost" onclick="fillToday()">📅 Vandaag</button>
   </div>
 
   <div class="card mb-16">
     <div class="card-title">Projecten &amp; Uren</div>
-    <div style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;margin-bottom:14px;">
+    <div class="datum-grid" style="display:grid;grid-template-columns:200px 1fr;gap:16px;align-items:start;margin-bottom:14px;">
       <div class="form-group" style="margin:0;">
         <label>Datum *</label>
         <input type="date" id="inp-datum" oninput="checkDuplicate()">
@@ -317,7 +412,7 @@
     </div>
   </div>
 
-  <div class="btn-row">
+  <div class="btn-row invoer-actions">
     <button class="btn btn-ghost" onclick="clearForm()">Wissen</button>
     <button class="btn btn-primary" onclick="saveEntry()">✓ Opslaan</button>
   </div>
@@ -351,13 +446,13 @@
       <option value="aangepast">Van – tot…</option>
       <option value="alles">Alles</option>
     </select>
-    <input type="month" id="dash-maand" onchange="renderDashboard()" style="max-width:160px;display:none;">
+    <input type="month" id="dash-maand" class="fr-c2" onchange="renderDashboard()" style="max-width:160px;display:none;">
     <span class="filter-label" id="dash-van-lbl" style="display:none;">Van</span>
     <input type="date" id="dash-van" onchange="renderDashboard()" style="max-width:155px;display:none;">
     <span class="filter-label" id="dash-tot-lbl" style="display:none;">Tot</span>
     <input type="date" id="dash-tot" onchange="renderDashboard()" style="max-width:155px;display:none;">
-    <button class="btn btn-ghost btn-sm" onclick="clearDashFilter()" title="Filters wissen">✕</button>
-    <span id="dash-periode-info" style="font-size:11px;font-weight:700;color:var(--gray-400);"></span>
+    <button class="btn btn-ghost btn-sm fr-clear" onclick="clearDashFilter()" title="Filters wissen">✕</button>
+    <span id="dash-periode-info" class="fr-full" style="font-size:11px;font-weight:700;color:var(--gray-400);"></span>
   </div>
 
   <div class="stats-row" id="dashStats"></div>
@@ -402,7 +497,8 @@
     </div>
   </div>
   <div class="card">
-    <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+    <div class="ov-filters" id="ovFilters" style="display:flex;flex-direction:column;gap:10px;margin-bottom:16px;">
+      <button class="btn btn-ghost fr-toggle" onclick="document.getElementById('ovFilters').classList.toggle('open')">🔍 Filters <span class="fr-arrow">▾</span></button>
       <div class="filter-row" style="margin-bottom:0;">
         <span class="filter-label">Medewerker:</span>
         <select id="ov-medewerker" onchange="renderOverzicht()"><option value="">Alle</option></select>
@@ -413,7 +509,7 @@
       </div>
       <div class="filter-row" style="margin-bottom:0;">
         <span class="filter-label">Projecten:</span>
-        <div style="position:relative;flex:1;max-width:460px;">
+        <div class="fr-projwrap" style="position:relative;flex:1;max-width:460px;">
           <button id="proj-filter-btn" onclick="toggleProjDropdown()" style="width:100%;text-align:left;padding:7px 12px;border:1.5px solid var(--gray-200);border-radius:8px;background:white;font-family:'Nunito Sans',sans-serif;font-size:13px;color:var(--gray-700);cursor:pointer;display:flex;justify-content:space-between;align-items:center;">
             <span id="proj-filter-label">Alle projecten</span><span style="color:var(--gray-400);font-size:10px;">▼</span>
           </button>
@@ -429,7 +525,7 @@
         <input type="date" id="ov-van" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
         <span class="filter-label">Tot</span>
         <input type="date" id="ov-tot" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
-        <button class="btn btn-ghost btn-sm" onclick="clearOvFilters()">✕</button>
+        <button class="btn btn-ghost btn-sm fr-clear" onclick="clearOvFilters()">✕</button>
       </div>
       <div id="ov-totaal-bar" style="display:none;background:var(--secondary-light);border:1.5px solid #93C5FD;border-radius:8px;padding:8px 14px;font-size:13px;color:var(--primary);font-weight:700;"></div>
     </div>
@@ -500,7 +596,7 @@
     <div class="filter-row" style="margin-bottom:12px;">
       <span class="filter-label">Filter:</span>
       <select id="proj-klant-filter" onchange="renderProjecten()"><option value="">Alle klanten</option></select>
-      <select id="proj-status-filter" onchange="renderProjecten()">
+      <select id="proj-status-filter" class="fr-c2" onchange="renderProjecten()">
         <option value="all">Alle statussen</option>
         <option value="active">Alleen actief</option>
         <option value="inactive">Alleen inactief</option>
@@ -530,9 +626,18 @@ const firebaseConfig = {
   appId: "1:796476954078:web:56200961c74f02d808b94f"
 };
 
-firebase.initializeApp(firebaseConfig);
-const db = firebase.firestore();
-const DOC = db.collection('data').doc('main');
+// Als de Firebase-bibliotheek niet geladen kan worden (geen internet, geblokkeerd),
+// blijft de app gewoon werken met de lokaal opgeslagen gegevens.
+let db = null, DOC = null;
+try {
+  if (typeof firebase !== 'undefined') {
+    firebase.initializeApp(firebaseConfig);
+    db = firebase.firestore();
+    DOC = db.collection('data').doc('main');
+  } else {
+    console.warn('Firebase niet geladen – offline modus (localStorage)');
+  }
+} catch (e) { console.error('Firebase init error:', e); }
 
 // ══════════════════════════
 // DATA (vooraan gedeclareerd zodat alle functies — ook
@@ -602,6 +707,7 @@ function showSyncBar(msg, type='') {
 }
 
 async function fbSave() {
+  if (!DOC) { showSyncBar('⚠ Geen cloudverbinding – lokaal opgeslagen', 'err'); return; }
   try {
     await DOC.set({
       users, klanten, projects, entries, omschrijvingen, toelichtingen,
@@ -652,7 +758,7 @@ async function fbLoad() {
 }
 
 function startFbListener() {
-  if (fbListenerActive) return;
+  if (fbListenerActive || !DOC) return;
   fbListenerActive = true;
   DOC.onSnapshot(snap => {
     if (!snap.exists) return;
@@ -733,7 +839,16 @@ document.addEventListener('DOMContentLoaded', async () => {
   const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
   ['ov-maand'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=m;});
   const dp=document.getElementById('dash-periode');if(dp)dp.value='maand';
+  openInvoer();
 });
+
+// App opent altijd op het tabblad Invoer (ook bij terugkeren via beginscherm/browsergeheugen)
+function openInvoer(){
+  const tab=[...document.querySelectorAll('.nav-tab')].find(t=>(t.getAttribute('onclick')||'').includes("'invoer'"));
+  showPage('invoer',tab);
+  window.scrollTo(0,0);
+}
+window.addEventListener('pageshow',e=>{ if(e.persisted) openInvoer(); });
 
 // ══════════════════════════
 // USER
@@ -1059,17 +1174,8 @@ function addEntryRow(projId='',type='',tekst='',uren='',focusProject=false){
           oninput="filterComboList('${id}')" onfocus="openComboList('${id}')"
           onkeydown="comboKeydown(event,'${id}')" onblur="closeComboList('${id}')">
         <input type="hidden" class="row-project" value="${projId||''}">
+        <input type="hidden" class="row-type-search" value="${escAttr(type)}">
         <div class="combo-list"></div>
-      </div>
-    </div>
-    <div>
-      <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Omschrijving</label>
-      <div class="combo">
-        <input type="text" class="row-type-search combo-input" autocomplete="off" spellcheck="false"
-          placeholder="Kies of typ…" value="${escAttr(type)}"
-          oninput="ocFilter('${id}')" onfocus="ocOpen('${id}')"
-          onkeydown="ocKeydown(event,'${id}')" onblur="ocClose('${id}')">
-        <div class="combo-list oc-list"></div>
       </div>
     </div>
     <div>
@@ -1084,7 +1190,7 @@ function addEntryRow(projId='',type='',tekst='',uren='',focusProject=false){
     </div>
     <div>
       <label style="font-size:10px;font-weight:800;color:var(--gray-400);letter-spacing:.8px;text-transform:uppercase;margin-bottom:4px;display:block;">Uren *</label>
-      <input type="number" class="row-uren" min="0" max="24" step="0.25" value="${uren}" placeholder="0" style="text-align:center;" oninput="recalcTotal()">
+      <input type="number" class="row-uren" inputmode="decimal" min="0" max="24" step="0.25" value="${uren}" placeholder="0" style="text-align:center;" oninput="recalcTotal()">
     </div>
     <button class="entry-row-remove" onclick="removeRow('${id}')">✕</button>`;
   document.getElementById('entryRows').appendChild(div);
@@ -1594,7 +1700,12 @@ function renderOverzicht(){
     const u=users.find(x=>x.id===e.userId);
     const k=klanten.find(x=>x.id===e.klantId);
     const ds=new Date(e.datum).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'});
-    return`<tr>
+    return`<tr class="drow">
+      <td class="mcell" colspan="8"><div class="mc">
+        <div class="mc-top"><span class="mc-title">${ds}</span><span class="mc-uren">${e.uren.toFixed(2)} u</span><button class="btn btn-danger btn-sm" onclick="deleteEntry(${e.id})">✕</button></div>
+        <div class="mc-tags"><span class="badge badge-blue">${p?p.naam:'Onbekend'}</span>${e.type?`<span class="badge badge-orange">${e.type}</span>`:''}<span class="mc-meta">${k?k.naam:'—'} · ${u?u.initials:'?'}</span></div>
+        ${e.omschrijving?`<div class="mc-text">${e.omschrijving}</div>`:''}
+      </div></td>
       <td style="white-space:nowrap;font-weight:700;">${ds}</td>
       <td><span class="badge badge-dark">${u?u.initials:'?'}</span></td>
       <td style="font-size:12px;color:var(--gray-500);">${k?k.naam:'—'}</td>
@@ -1634,7 +1745,12 @@ function renderProjecten(){
   document.getElementById('projectenTable').innerHTML=list.map(p=>{
     const total=entries.filter(e=>e.projectId===p.id).reduce((s,e)=>s+e.uren,0);
     const k=klanten.find(x=>x.id===p.klantId);
-    return`<tr id="proj-row-${p.id}">
+    return`<tr class="drow" id="proj-row-${p.id}">
+      <td class="mcell" colspan="6"><div class="mc">
+        <div class="mc-top"><span class="mc-title">${p.naam}</span><span class="mc-uren">${total.toFixed(1)} u</span></div>
+        <div class="mc-tags"><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</div>
+        <div class="mc-actions"><div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div><span style="flex:1"></span><button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏ Wijzig</button><button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button></div>
+      </div></td>
       <td><strong>${p.naam}</strong></td>
       <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code></td>
       <td>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</td>
@@ -1664,7 +1780,7 @@ function renderProjecten(){
   }).join('');
 }
 
-function startEdit(id){document.getElementById(`proj-edit-${id}`).style.display='table-row';document.getElementById(`edit-naam-${id}`).focus();}
+function startEdit(id){document.getElementById(`proj-edit-${id}`).style.display='';document.getElementById(`edit-naam-${id}`).focus();}
 function cancelEdit(id){document.getElementById(`proj-edit-${id}`).style.display='none';}
 function saveEdit(id){
   const p=projects.find(x=>x.id===id);
