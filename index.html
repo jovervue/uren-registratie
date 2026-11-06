@@ -140,6 +140,12 @@
   .badge-orange{background:#FEF9C3;color:#92400E;}
   .badge-dark{background:#EFF6FF;color:var(--primary);}
   .badge-gray{background:var(--gray-100);color:var(--gray-400);}
+  .badge-arch{background:#F1F5F9;color:#64748B;border:1px dashed #CBD5E1;}
+  .arch-toggle{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:700;color:var(--gray-500);cursor:pointer;white-space:nowrap;user-select:none;}
+  .arch-toggle input{width:15px;height:15px;margin:0;accent-color:var(--secondary);cursor:pointer;}
+  .arch-item{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:10px 14px;border:1.5px dashed #CBD5E1;border-radius:10px;background:#F8FAFC;}
+  .arch-item .ai-naam{font-size:14px;font-weight:700;color:var(--gray-500);}
+  .arch-item .ai-meta{font-size:12px;color:var(--gray-400);flex:1;}
 
   .filter-row{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-bottom:16px;}
   .filter-row select,.filter-row input{max-width:200px;padding:7px 12px;font-size:13px;}
@@ -283,6 +289,8 @@
     .filter-row .fr-full{grid-column:1/-1;}
     .filter-row .fr-clear{grid-column:1/-1;justify-self:start;}
     .filter-row .fr-projwrap{padding:0;}
+    .filter-row .arch-toggle{grid-column:1/-1;}
+    .filter-row .arch-toggle input{width:18px !important;height:18px;padding:0 !important;}
     #proj-filter-btn{font-size:15px !important;padding:10px 12px !important;}
 
     .stats-row{grid-template-columns:repeat(3,1fr) !important;gap:8px;margin-bottom:16px;}
@@ -451,6 +459,7 @@
     <input type="date" id="dash-van" onchange="renderDashboard()" style="max-width:155px;display:none;">
     <span class="filter-label" id="dash-tot-lbl" style="display:none;">Tot</span>
     <input type="date" id="dash-tot" onchange="renderDashboard()" style="max-width:155px;display:none;">
+    <label class="arch-toggle" title="Ook uren van gearchiveerde klanten/projecten tonen"><input type="checkbox" class="toon-archief-cb" onchange="zetToonArchief(this.checked)"> Toon archief</label>
     <button class="btn btn-ghost btn-sm fr-clear" onclick="clearDashFilter()" title="Filters wissen">✕</button>
     <span id="dash-periode-info" class="fr-full" style="font-size:11px;font-weight:700;color:var(--gray-400);"></span>
   </div>
@@ -525,6 +534,7 @@
         <input type="date" id="ov-van" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
         <span class="filter-label">Tot</span>
         <input type="date" id="ov-tot" onchange="clearMaand();renderOverzicht();" style="max-width:155px;">
+        <label class="arch-toggle" title="Ook uren van gearchiveerde klanten/projecten tonen"><input type="checkbox" class="toon-archief-cb" onchange="zetToonArchief(this.checked)"> Toon archief</label>
         <button class="btn btn-ghost btn-sm fr-clear" onclick="clearOvFilters()">✕</button>
       </div>
       <div id="ov-totaal-bar" style="display:none;background:var(--secondary-light);border:1.5px solid #93C5FD;border-radius:8px;padding:8px 14px;font-size:13px;color:var(--primary);font-weight:700;"></div>
@@ -588,7 +598,7 @@
   </div>
 
   <div class="card mb-16">
-    <div class="card-title">Actieve klanten</div>
+    <div class="card-title">Klanten <span class="hint">— 🗄 archiveert de klant én al zijn projecten</span></div>
     <div id="klantCards" style="display:flex;gap:10px;flex-wrap:wrap;"></div>
   </div>
 
@@ -600,6 +610,7 @@
         <option value="all">Alle statussen</option>
         <option value="active">Alleen actief</option>
         <option value="inactive">Alleen inactief</option>
+        <option value="archief">Gearchiveerd</option>
       </select>
     </div>
     <div class="table-wrap">
@@ -608,6 +619,11 @@
         <tbody id="projectenTable"></tbody>
       </table>
     </div>
+  </div>
+
+  <div class="card mt-16" id="archiefCard" style="display:none;margin-top:16px;">
+    <div class="card-title">🗄 Archief <span class="hint">— uren blijven bewaard; zichtbaar in dashboard/overzicht via "Toon archief"</span></div>
+    <div id="archiefLijst" style="display:flex;flex-direction:column;gap:8px;"></div>
   </div>
 </div>
 
@@ -696,6 +712,74 @@ let currentUserId=null, lastUserId=null;
 const PIE_COLORS=['#2563EB','#1E3A8A','#22C55E','#F59E0B','#93C5FD','#6EE7B7','#1D4ED8','#16A34A','#60A5FA','#34D399'];
 
 let fbListenerActive = false;
+
+// ══════════════════════════
+// ARCHIEF
+// klant.archief / project.archief = true → verborgen in invoer, dashboard en overzicht
+// project.archiefDoorKlant = true → mee gearchiveerd met de klant (wordt mee hersteld)
+// ══════════════════════════
+let toonArchief = localStorage.getItem('cv_toonArchief')==='1';
+function klantGearchiveerd(id){const k=klanten.find(x=>x.id==id);return !!(k&&k.archief);}
+function projGearchiveerd(p){return !!(p&&(p.archief||klantGearchiveerd(p.klantId)));}
+function entryGearchiveerd(e){return projGearchiveerd(projects.find(x=>x.id===e.projectId))||klantGearchiveerd(e.klantId);}
+function zichtbaar(e){return toonArchief||!entryGearchiveerd(e);}
+function klantOptLabel(k){return k.naam+(k.archief?' (archief)':'');}
+function vandaagISO(){return new Date().toISOString().split('T')[0];}
+function zetToonArchief(v){
+  toonArchief=!!v;
+  try{localStorage.setItem('cv_toonArchief',toonArchief?'1':'0');}catch(e){}
+  syncArchiefToggles();
+  populateAllFilters();renderDashboard();renderOverzicht();
+}
+function syncArchiefToggles(){document.querySelectorAll('.toon-archief-cb').forEach(cb=>cb.checked=toonArchief);}
+function archiveerKlant(id){
+  const k=klanten.find(x=>x.id===id);if(!k)return;
+  const pr=projects.filter(p=>p.klantId===id&&!p.archief);
+  const pids=new Set(projects.filter(p=>p.klantId===id).map(p=>p.id));
+  const n=entries.filter(e=>e.klantId===id||pids.has(e.projectId)).length;
+  if(!confirm(`Klant "${k.naam}" archiveren?\n\nOok ${pr.length} gekoppelde project(en) worden gearchiveerd.\nDe ${n} registraties blijven bewaard, maar verdwijnen uit invoer, dashboard en overzicht (terug te zien via "Toon archief").\n\nJe kan dit later herstellen.`))return;
+  k.archief=true;k.archiefDatum=vandaagISO();
+  pr.forEach(p=>{p.archief=true;p.archiefDoorKlant=true;});
+  naArchief(`${k.naam} + ${pr.length} project(en) gearchiveerd`,'success');
+}
+function herstelKlant(id){
+  const k=klanten.find(x=>x.id===id);if(!k)return;
+  k.archief=false;delete k.archiefDatum;
+  let n=0;
+  projects.forEach(p=>{if(p.klantId===id&&p.archiefDoorKlant){p.archief=false;delete p.archiefDoorKlant;delete p.archiefDatum;n++;}});
+  naArchief(`${k.naam} hersteld (${n} project(en))`,'success');
+}
+function archiveerProject(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  const n=entries.filter(e=>e.projectId===id).length;
+  if(!confirm(`Project "${p.naam}" archiveren?\n\nDe ${n} registraties blijven bewaard maar verdwijnen uit invoer, dashboard en overzicht.`))return;
+  p.archief=true;p.archiefDatum=vandaagISO();delete p.archiefDoorKlant;
+  naArchief(`${p.naam} gearchiveerd`,'success');
+}
+function herstelProject(id){
+  const p=projects.find(x=>x.id===id);if(!p)return;
+  if(klantGearchiveerd(p.klantId)){const k=klanten.find(x=>x.id===p.klantId);showToast(`Klant ${k.naam} is gearchiveerd – herstel eerst de klant`,'error');return;}
+  p.archief=false;delete p.archiefDoorKlant;delete p.archiefDatum;
+  naArchief(`${p.naam} hersteld`,'success');
+}
+function naArchief(msg,type){
+  save();populateAllFilters();renderProjecten();renderDashboard();renderOverzicht();
+  if(typeof refreshAllDropdowns==='function')refreshAllDropdowns();
+  showToast(msg,type);
+}
+// Eenmalig bij invoering archief: klant(en) met "Tervuren" in de naam archiveren.
+// Loopt enkel zolang nog geen enkele klant een archief-veld heeft.
+function archiefMigratie(){
+  if(!klanten.length||klanten.some(k=>'archief' in k))return false;
+  let n=0;
+  klanten.forEach(k=>{
+    if(/tervuren/i.test(k.naam)){
+      k.archief=true;k.archiefDatum=vandaagISO();n++;
+      projects.forEach(p=>{if(p.klantId===k.id&&!p.archief){p.archief=true;p.archiefDoorKlant=true;}});
+    } else k.archief=false;
+  });
+  return true;
+}
 
 function showSyncBar(msg, type='') {
   const bar = document.getElementById('syncBar');
@@ -829,11 +913,14 @@ function load(){
 document.addEventListener('DOMContentLoaded', async () => {
   // Laad eerst van Firebase, dan UI opstarten
   await fbLoad();
+  const gemigreerd = archiefMigratie();
   startFbListener();
+  syncArchiefToggles();
 
   const uid = lastUserId && users.find(u=>u.id===lastUserId) ? lastUserId : (users[0]?.id||null);
   if(uid) doLogin(uid);
   else openUserModal();
+  if(gemigreerd){ if(!uid) save(); const t=klanten.filter(k=>k.archief).map(k=>k.naam); if(t.length) showToast(`Gearchiveerd: ${t.join(', ')}`,'success'); }
 
   const now=new Date();
   const m=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
@@ -900,7 +987,7 @@ function showPage(name,btn){
 }
 
 function updateNavClient(){
-  const activeKlanten=klanten.filter(k=>k.actief);
+  const activeKlanten=klanten.filter(k=>k.actief&&!k.archief);
   const sub=document.getElementById('invoer-sub');
   if(sub)sub.textContent=activeKlanten.length?`Registreer uren voor ${activeKlanten.map(k=>k.naam).join(', ')}`:'Voeg een klant toe via Projecten';
 }
@@ -914,7 +1001,7 @@ function fillToday(){
 }
 
 function projectOptions(selectedId){
-  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  const sorted=projects.filter(p=>!projGearchiveerd(p)||p.id==selectedId).sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
   return sorted.map(p=>{
     const k=klanten.find(x=>x.id===p.klantId);
     const label=k?`${p.naam} (${k.naam})`:p.naam;
@@ -925,7 +1012,7 @@ function projectOptions(selectedId){
 // ── ZOEKBARE PROJECT-COMBOBOX ──
 function comboMatches(term){
   const t=(term||'').trim().toLowerCase();
-  const sorted=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
+  const sorted=projects.filter(p=>!projGearchiveerd(p)).sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
   if(!t) return sorted;
   return sorted.filter(p=>p.naam.toLowerCase().includes(t)||(p.code||'').toLowerCase().includes(t));
 }
@@ -1263,17 +1350,19 @@ function clearForm(){
 // ══════════════════════════
 // DASHBOARD
 // ══════════════════════════
+function setOpts(el,html){
+  if(!el)return;const v=el.value;el.innerHTML=html;
+  if(v&&[...el.options].some(o=>o.value===v))el.value=v;
+}
 function populateAllFilters(){
-  const dm=document.getElementById('dash-medewerker'),dk=document.getElementById('dash-klant');
-  if(dm)dm.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
-  if(dk)dk.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  const om=document.getElementById('ov-medewerker'),ok=document.getElementById('ov-klant');
-  if(om)om.innerHTML='<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join('');
-  if(ok)ok.innerHTML='<option value="">Alle</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  const pkf=document.getElementById('proj-klant-filter');
-  if(pkf)pkf.innerHTML='<option value="">Alle klanten</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
-  const npk=document.getElementById('np-klant');
-  if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');
+  const filtKl=klanten.filter(k=>toonArchief||!k.archief);
+  const actKl=klanten.filter(k=>!k.archief);
+  setOpts(document.getElementById('dash-medewerker'),'<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join(''));
+  setOpts(document.getElementById('dash-klant'),'<option value="">Alle</option>'+filtKl.map(k=>`<option value="${k.id}">${klantOptLabel(k)}</option>`).join(''));
+  setOpts(document.getElementById('ov-medewerker'),'<option value="">Alle</option>'+users.map(u=>`<option value="${u.id}">${u.naam}</option>`).join(''));
+  setOpts(document.getElementById('ov-klant'),'<option value="">Alle</option>'+filtKl.map(k=>`<option value="${k.id}">${klantOptLabel(k)}</option>`).join(''));
+  setOpts(document.getElementById('proj-klant-filter'),'<option value="">Alle klanten</option>'+klanten.map(k=>`<option value="${k.id}">${klantOptLabel(k)}</option>`).join(''));
+  setOpts(document.getElementById('np-klant'),'<option value="">— Kies klant —</option>'+actKl.map(k=>`<option value="${k.id}">${k.naam}</option>`).join(''));
   buildProjCheckboxes();
   updateNavClient();
 }
@@ -1284,7 +1373,7 @@ function renderDashboard(){
   const per=dashPeriode();
   const info=document.getElementById('dash-periode-info');
   const filtered=entries.filter(e=>{
-    return(!med||e.userId==med)&&(!klant||e.klantId==klant)&&
+    return zichtbaar(e)&&(!med||e.userId==med)&&(!klant||e.klantId==klant)&&
       (!per.van||e.datum>=per.van)&&(!per.tot||e.datum<=per.tot);
   });
   if(info)info.textContent=`${filtered.length} registraties · ${per.label}`;
@@ -1309,7 +1398,7 @@ function renderDashboard(){
     ?weeks.map(([wk,u])=>{const h=Math.round((u/maxW)*100);const act=dashDetail&&dashDetail.kind==='week'&&String(dashDetail.key)===String(wk);return`<div class="chart-col clickable${act?' actief':''}" onclick="openDashDetail('week',${wk})" title="Week ${wk} — ${u.toFixed(2)} u"><div class="chart-val">${u.toFixed(u%1?1:0)}</div><div class="chart-bar dark" style="height:${h}px;"></div><div class="chart-label">W${wk}</div></div>`;}).join('')
     :'<div style="padding:20px;color:#8888a0;font-size:13px;">Geen data</div>';
 
-  const maandAll=entries.filter(e=>(!med||e.userId==med)&&(!klant||e.klantId==klant));
+  const maandAll=entries.filter(e=>zichtbaar(e)&&(!med||e.userId==med)&&(!klant||e.klantId==klant));
   const maandM={};
   maandAll.forEach(e=>{const mo=e.datum.slice(0,7);maandM[mo]=(maandM[mo]||0)+e.uren;});
   const maanden=Object.entries(maandM).sort((a,b)=>a[0].localeCompare(b[0]));
@@ -1659,13 +1748,15 @@ function getWeek(d){
 // ══════════════════════════
 function buildProjCheckboxes(){
   const c=document.getElementById('proj-filter-checkboxes');if(!c)return;
-  c.innerHTML=projects.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl')).map(p=>`
+  const was=new Set([...c.querySelectorAll('.proj-filter-cb:checked')].map(cb=>cb.value));
+  c.innerHTML=projects.filter(p=>toonArchief||!projGearchiveerd(p)).sort((a,b)=>a.naam.localeCompare(b.naam,'nl')).map(p=>`
     <label style="display:flex;align-items:center;gap:10px;padding:7px 14px;cursor:pointer;font-size:13px;color:var(--gray-700);"
       onmouseover="this.style.background='var(--gray-50)'" onmouseout="this.style.background=''">
-      <input type="checkbox" class="proj-filter-cb" value="${p.id}" onchange="renderOverzicht();updateProjLabel()"
+      <input type="checkbox" class="proj-filter-cb" value="${p.id}" ${was.has(String(p.id))?'checked':''} onchange="renderOverzicht();updateProjLabel()"
         style="width:15px;height:15px;cursor:pointer;accent-color:var(--secondary);">
-      <span>${p.naam}</span>${!p.actief?'<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(inactief)</span>':''}
+      <span>${p.naam}</span>${projGearchiveerd(p)?'<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(archief)</span>':(!p.actief?'<span style="font-size:10px;color:var(--gray-400);margin-left:4px;">(inactief)</span>':'')}
     </label>`).join('');
+  updateProjLabel();
 }
 
 function toggleProjDropdown(){const dd=document.getElementById('proj-filter-dropdown');dd.style.display=dd.style.display==='none'?'block':'none';}
@@ -1686,7 +1777,7 @@ function renderOverzicht(){
   const van=document.getElementById('ov-van')?.value||'';
   const tot=document.getElementById('ov-tot')?.value||'';
   let filtered=entries.filter(e=>{
-    return(!checked.length||checked.includes(e.projectId))&&
+    return zichtbaar(e)&&(!checked.length||checked.includes(e.projectId))&&
       (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
       (!med||e.userId==med)&&(!klant||e.klantId==klant);
   }).sort((a,b)=>b.datum.localeCompare(a.datum));
@@ -1728,37 +1819,48 @@ function clearOvFilters(){deselectAllProjects();['ov-maand','ov-van','ov-tot','o
 // ══════════════════════════
 function renderProjecten(){
   const cc=document.getElementById('klantCards');
-  if(cc)cc.innerHTML=klanten.length
-    ?klanten.map(k=>`
+  const zichtKl=klanten.filter(k=>!k.archief);
+  if(cc)cc.innerHTML=zichtKl.length
+    ?zichtKl.map(k=>`
       <div style="display:flex;align-items:center;gap:10px;padding:10px 16px;border:1.5px solid ${k.actief?'var(--secondary)':'var(--border)'};border-radius:10px;background:${k.actief?'var(--secondary-light)':'white'};">
         <span style="font-size:14px;font-weight:700;color:var(--dark);">${k.naam}</span>
         <button class="toggle ${k.actief?'on':''}" onclick="toggleKlant(${k.id})" title="${k.actief?'Zet inactief':'Zet actief'}"></button>
+        <button class="btn btn-ghost btn-sm" onclick="archiveerKlant(${k.id})" title="Klant + alle projecten archiveren">🗄</button>
         <button class="btn btn-danger btn-sm" onclick="deleteKlant(${k.id})">✕</button>
       </div>`).join('')
-    :'<span style="font-size:13px;color:var(--gray-400);">Nog geen klanten. Klik op + Klant toevoegen.</span>';
+    :'<span style="font-size:13px;color:var(--gray-400);">Geen actieve klanten. Klik op + Klant toevoegen.</span>';
+  renderArchiefLijst();
 
   const klantF=document.getElementById('proj-klant-filter')?.value||'';
   const statusF=document.getElementById('proj-status-filter')?.value||'all';
-  let list=projects.filter(p=>(!klantF||p.klantId==klantF)&&(statusF==='all'||(statusF==='active'&&p.actief)||(statusF==='inactive'&&!p.actief)));
+  let list=projects.filter(p=>{
+    if(klantF&&p.klantId!=klantF)return false;
+    const arch=projGearchiveerd(p);
+    if(statusF==='archief')return arch;
+    if(arch)return false;
+    return statusF==='all'||(statusF==='active'&&p.actief)||(statusF==='inactive'&&!p.actief);
+  });
   list=list.slice().sort((a,b)=>a.naam.localeCompare(b.naam,'nl'));
 
-  document.getElementById('projectenTable').innerHTML=list.map(p=>{
+  document.getElementById('projectenTable').innerHTML=list.length?list.map(p=>{
+    const arch=projGearchiveerd(p);
     const total=entries.filter(e=>e.projectId===p.id).reduce((s,e)=>s+e.uren,0);
     const k=klanten.find(x=>x.id===p.klantId);
     return`<tr class="drow" id="proj-row-${p.id}">
       <td class="mcell" colspan="6"><div class="mc">
         <div class="mc-top"><span class="mc-title">${p.naam}</span><span class="mc-uren">${total.toFixed(1)} u</span></div>
         <div class="mc-tags"><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</div>
-        <div class="mc-actions"><div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div><span style="flex:1"></span><button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏ Wijzig</button><button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button></div>
+        <div class="mc-actions">${arch?'<span class="badge badge-arch">🗄 Archief</span><span style="flex:1"></span>'+`<button class="btn btn-ghost btn-sm" onclick="herstelProject(${p.id})">↩ Herstel</button>`:`<div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div><span style="flex:1"></span><button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏ Wijzig</button><button class="btn btn-ghost btn-sm" onclick="archiveerProject(${p.id})" title="Archiveren">🗄</button><button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button>`}</div>
       </div></td>
       <td><strong>${p.naam}</strong></td>
       <td><code style="font-size:12px;background:var(--gray-100);padding:2px 6px;border-radius:4px;">${p.code}</code></td>
       <td>${k?`<span class="badge badge-blue">${k.naam}</span>`:'<span class="badge badge-gray">Geen klant</span>'}</td>
       <td style="font-weight:700;">${total.toFixed(1)} u</td>
-      <td><div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div></td>
+      <td>${arch?'<span class="badge badge-arch">🗄 Archief</span>':`<div class="toggle-wrap"><button class="toggle ${p.actief?'on':''}" onclick="toggleProject(${p.id})"></button><span style="font-size:12px;color:${p.actief?'var(--accent)':'var(--text-muted)'};font-weight:700;">${p.actief?'Actief':'Inactief'}</span></div>`}</td>
       <td style="display:flex;gap:6px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏</button>
-        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button>
+        ${arch?`<button class="btn btn-ghost btn-sm" onclick="herstelProject(${p.id})">↩ Herstel</button>`:`<button class="btn btn-ghost btn-sm" onclick="startEdit(${p.id})">✏</button>
+        <button class="btn btn-ghost btn-sm" onclick="archiveerProject(${p.id})" title="Archiveren">🗄</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteProject(${p.id})" ${total>0?'disabled title="Heeft uren"':''}>✕</button>`}
       </td>
     </tr>
     <tr id="proj-edit-${p.id}" style="display:none;background:var(--gray-50);">
@@ -1769,7 +1871,7 @@ function renderProjecten(){
           <div style="display:flex;flex-direction:column;gap:4px;"><label>Klant</label>
             <select id="edit-klant-${p.id}" style="max-width:200px;">
               <option value="">Geen klant</option>
-              ${klanten.map(k=>`<option value="${k.id}" ${k.id===p.klantId?'selected':''}>${k.naam}</option>`).join('')}
+              ${klanten.filter(k=>!k.archief||k.id===p.klantId).map(k=>`<option value="${k.id}" ${k.id===p.klantId?'selected':''}>${klantOptLabel(k)}</option>`).join('')}
             </select>
           </div>
           <button class="btn btn-primary btn-sm" onclick="saveEdit(${p.id})">✓ Opslaan</button>
@@ -1777,6 +1879,31 @@ function renderProjecten(){
         </div>
       </td>
     </tr>`;
+  }).join(''):`<tr><td colspan="6"><div class="empty"><div class="empty-icon">${statusF==='archief'?'🗄':'📁'}</div><h3>${statusF==='archief'?'Geen gearchiveerde projecten':'Geen projecten'}</h3></div></td></tr>`;
+}
+
+function renderArchiefLijst(){
+  const card=document.getElementById('archiefCard'),box=document.getElementById('archiefLijst');
+  if(!card||!box)return;
+  const ak=klanten.filter(k=>k.archief);
+  const ap=projects.filter(p=>p.archief&&!klantGearchiveerd(p.klantId));
+  if(!ak.length&&!ap.length){card.style.display='none';box.innerHTML='';return;}
+  card.style.display='';
+  const urenVan=f=>entries.filter(f).reduce((s,e)=>s+e.uren,0);
+  const fd=d=>d?new Date(d).toLocaleDateString('nl-BE',{day:'2-digit',month:'short',year:'numeric'}):'';
+  box.innerHTML=ak.map(k=>{
+    const pids=new Set(projects.filter(p=>p.klantId===k.id).map(p=>p.id));
+    const u=urenVan(e=>e.klantId===k.id||pids.has(e.projectId));
+    return`<div class="arch-item"><span class="badge badge-arch">Klant</span><span class="ai-naam">${k.naam}</span>
+      <span class="ai-meta">${pids.size} project(en) · ${u.toFixed(1)} u${k.archiefDatum?' · gearchiveerd '+fd(k.archiefDatum):''}</span>
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('proj-klant-filter').value='${k.id}';document.getElementById('proj-status-filter').value='archief';renderProjecten();">Projecten</button>
+      <button class="btn btn-ghost btn-sm" onclick="herstelKlant(${k.id})">↩ Herstel</button></div>`;
+  }).join('')+ap.map(p=>{
+    const k=klanten.find(x=>x.id===p.klantId);
+    const u=urenVan(e=>e.projectId===p.id);
+    return`<div class="arch-item"><span class="badge badge-arch">Project</span><span class="ai-naam">${p.naam}</span>
+      <span class="ai-meta">${k?k.naam:'Geen klant'} · ${u.toFixed(1)} u${p.archiefDatum?' · gearchiveerd '+fd(p.archiefDatum):''}</span>
+      <button class="btn btn-ghost btn-sm" onclick="herstelProject(${p.id})">↩ Herstel</button></div>`;
   }).join('');
 }
 
@@ -1797,7 +1924,7 @@ function saveEdit(id){
 function toggleProject(id){const p=projects.find(x=>x.id===id);if(p){p.actief=!p.actief;refreshAllDropdowns();save();renderProjecten();showToast(`${p.naam} is nu ${p.actief?'actief':'inactief'}`,'success');}}
 function deleteProject(id){const p=projects.find(x=>x.id===id);if(!confirm(`"${p.naam}" verwijderen?`))return;projects=projects.filter(x=>x.id!==id);save();refreshAllDropdowns();renderProjecten();showToast('Project verwijderd','warn');}
 
-function showAddProject(){document.getElementById('addProjectForm').style.display='block';const npk=document.getElementById('np-klant');if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');}
+function showAddProject(){document.getElementById('addProjectForm').style.display='block';const npk=document.getElementById('np-klant');if(npk)npk.innerHTML='<option value="">— Kies klant —</option>'+klanten.filter(k=>!k.archief).map(k=>`<option value="${k.id}">${k.naam}</option>`).join('');}
 function hideAddProject(){document.getElementById('addProjectForm').style.display='none';['np-naam','np-code'].forEach(id=>document.getElementById(id).value='');}
 
 function addProject(){
@@ -1818,7 +1945,7 @@ function addKlant(){
   const naam=document.getElementById('nk-naam').value.trim();
   if(!naam){document.getElementById('err-nk-naam').classList.add('show');return;}
   document.getElementById('err-nk-naam').classList.remove('show');
-  klanten.push({id:nextKlantId++,naam,actief:true});
+  klanten.push({id:nextKlantId++,naam,actief:true,archief:false});
   hideAddKlant();save();populateAllFilters();renderProjecten();
   showToast(`${naam} toegevoegd`,'success');
 }
@@ -1840,7 +1967,7 @@ function getFilteredForExport(){
   const van=document.getElementById('ov-van')?.value||'';
   const tot=document.getElementById('ov-tot')?.value||'';
   return entries.filter(e=>{
-    return(!checked.length||checked.includes(e.projectId))&&
+    return zichtbaar(e)&&(!checked.length||checked.includes(e.projectId))&&
       (!maand||e.datum.startsWith(maand))&&(!van||e.datum>=van)&&(!tot||e.datum<=tot)&&
       (!med||e.userId==med)&&(!klant||e.klantId==klant);
   }).sort((a,b)=>a.datum.localeCompare(b.datum));
